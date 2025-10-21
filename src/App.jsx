@@ -1,48 +1,3 @@
-// import React from "react";
-// // Import thêm Navigate
-// import {
-//   BrowserRouter as Router,
-//   Routes,
-//   Route,
-//   Navigate,
-// } from "react-router-dom";
-// import { AuthLayout } from "./layouts/AuthLayout.jsx";
-// import { WelcomeScreen } from "./pages/WelcomeScreen.jsx";
-// import { Box } from "./pages/LoginScreen.jsx";
-// import { DashboardLayout } from "./layouts/DashboardLayout.jsx";
-
-// export default function App() {
-//   return (
-//     <Router>
-//       <Routes>
-//         {/* THÊM DÒNG NÀY VÀO */}
-//         <Route path="/" element={<Navigate to="/welcome" />} />
-
-//         {/* Các route cũ của bạn */}
-//         <Route
-//           path="/welcome"
-//           element={
-//             <div className="min-h-screen relative">
-//               <AuthLayout />
-//               <WelcomeScreen />
-//             </div>
-//           }
-//         />
-//         <Route
-//           path="/login"
-//           element={
-//             <div className="min-h-screen relative">
-//               <AuthLayout />
-//               <Box />
-//             </div>
-//           }
-//         />
-//         <Route path="/dashboard" element={<DashboardLayout />} />
-//       </Routes>
-//     </Router>
-//   );
-// }
-
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -58,16 +13,15 @@ import { SharedLayout } from "./layouts/SharedLayout.jsx"; // 1. Import layout m
 // Pages
 import { WelcomeScreen } from "./pages/WelcomeScreen.jsx";
 import { Box as LoginScreen } from "./pages/LoginScreen.jsx"; // Đổi tên 'Box' cho dễ hiểu
+import { PaymentPage } from "./pages/PaymentPage.jsx"; // <<< 1. Import trang mới
+import { QRCodePayment } from "./pages/QRCodePayment.jsx"; // <<< 1. Import trang QR
+import { NotificationsPage } from "./pages/NotificationsPage.jsx"; // <<< 1. Import trang mới
 
 // --- TẠO CÁC TRANG PLACEHOLDER CHO DASHBOARD ---
-// (Bạn sẽ thay thế chúng bằng các file trang thật)
-const DashboardHome = () => <h1 className="text-3xl font-bold">Trang chủ Dashboard</h1>;
-const ResidentsPage = () => <h1 className="text-3xl font-bold">Quản lý Dân cư</h1>;
-const ServicesPage = () => <h1 className="text-3xl font-bold">Quản lý Dịch vụ</h1>;
-const PaymentPage = () => <h1 className="text-3xl font-bold">Quản lý Thanh toán</h1>;
-const NotificationsPage = () => (
-  <h1 className="text-3xl font-bold">Quản lý Thông báo</h1>
-);
+const DashboardHome = () => <h1 className="text-3xl font-bold text-white">Trang chủ Dashboard</h1>; // Thêm text-white
+const ResidentsPage = () => <h1 className="text-3xl font-bold text-white">Quản lý Dân cư</h1>;
+const ServicesPage = () => <h1 className="text-3xl font-bold text-white">Quản lý Dịch vụ</h1>;
+
 // -----------------------------------------------
 
 export default function App() {
@@ -100,14 +54,19 @@ export default function App() {
         {/* === CÁC TRANG CẦN SIDEBAR (DASHBOARD) === */}
         {/* 2. Dùng SharedLayout làm route cha */}
         <Route path="/dashboard" element={<SharedLayout />}>
-          {/* Các route con sẽ được render bên trong <Outlet> */}
-          
-          {/* 'index' có nghĩa là trang mặc định của /dashboard */}
-          <Route index element={<DashboardHome />} /> 
-          
+          <Route index element={<DashboardHome />} />
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="services" element={<ServicesPage />} />
-          <Route path="payment" element={<PaymentPage />} />
+          {/* --- 2. SỬ DỤNG COMPONENT THẬT Ở ĐÂY --- */}
+          {/* Route cha cho phần thanh toán */}
+          <Route path="payment">
+            {/* Trang danh sách thanh toán (mặc định) */}
+            <Route index element={<PaymentPage />} /> 
+            {/* Trang hiển thị QR Code cho một hóa đơn cụ thể */}
+            <Route path=":invoiceId/qr" element={<QRCodePayment />} /> {/* <<< 2. Thêm route con */}
+          </Route>
+          {/* ================================== */}
+          {/* ----------------------------------------- */}
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Routes>
