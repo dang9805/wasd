@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import activesection from "../images/activesection.png";
 import activesection1 from "../images/activesection.svg";
 import companySLogo from "../images/company-s-logo.png";
@@ -16,7 +17,7 @@ import payment from "../images/dash_payment_icon.svg";
 import shape from "../images/shape.svg";
 import inactive from "../images/inactive.png";
 
-export const DashboardResident = () => {
+export const DashboardLayout = () => {
   const navigationItems = [
     { id: 1, label: "Trang chủ", isActive: false, icon: main_icon },
     { id: 2, label: "Dân cư", isActive: true, icon: resident },
@@ -54,34 +55,34 @@ export const DashboardResident = () => {
             role="presentation"
           />
 
-          <a
+          <Link
             href="#home"
             className="absolute w-[39.13%] top-[calc(50.00%_-_119px)] left-[26.09%] [font-family:'Nunito_Sans-SemiBold',Helvetica] font-semibold text-[#7d8592] text-base tracking-[0] leading-[normal] no-underline"
           >
             Trang chủ
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="#residents"
             className="absolute w-[28.26%] top-[calc(50.00%_-_65px)] left-[26.09%] [font-family:'Nunito_Sans-Bold',Helvetica] font-bold text-[#3f8cff] text-base tracking-[0] leading-[normal] no-underline"
             aria-current="page"
           >
             Dân cư
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="#services"
             className="absolute w-[29.89%] top-[calc(50.00%_-_11px)] left-[26.09%] [font-family:'Nunito_Sans-SemiBold',Helvetica] font-semibold text-[#7d8592] text-base tracking-[0] leading-[normal] no-underline"
           >
             Dịch vụ
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="#notifications"
             className="absolute w-[42.93%] top-[calc(50.00%_+_97px)] left-[26.09%] [font-family:'Nunito_Sans-SemiBold',Helvetica] font-semibold text-[#7d8592] text-base tracking-[0] leading-[normal] no-underline"
           >
             Thông báo
-          </a>
+          </Link>
 
           <div
             className="absolute w-[13.04%] h-[6.90%] top-[77.59%] left-[4.35%] flex"
@@ -97,12 +98,12 @@ export const DashboardResident = () => {
             </div>
           </div>
 
-          <a
+          <Link
             href="#payment"
             className="absolute w-[45.11%] top-[calc(50.00%_+_43px)] left-[26.09%] [font-family:'Nunito_Sans-SemiBold',Helvetica] font-semibold text-[#7d8592] text-base tracking-[0] leading-[normal] no-underline"
           >
             Thanh toán
-          </a>
+          </Link>
 
           <img
             className="absolute w-[2.17%] h-[12.64%] top-[27.87%] left-[96.20%]"

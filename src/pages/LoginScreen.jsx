@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import passwordIcon from "../images/password_icon.svg";
 import loginBtn from "../images/login_btn.svg";
 import username from "../images/username_field.svg";
-import vector from "../images/vector_2.svg";
+// import vector from "../images/vector_2.svg";
 
 export const Box = () => {
   const [usernameValue, setUsernameValue] = useState("");
