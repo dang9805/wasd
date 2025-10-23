@@ -58,13 +58,17 @@ export const SharedLayout = () => {
   // === KẾT THÚC SỬA ===
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-blue-700"> {/* <<< Đổi nền chính thành màu xanh */}
+
       {/* === SIDEBAR === */}
-      <aside className="w-72 flex flex-col border-r border-gray-200 flex-shrink-0">
+      {/* Thêm rounded-tr-2xl và rounded-br-2xl */}
+      <aside className="w-72 flex flex-col bg-white rounded-tr-2xl rounded-br-2xl flex-shrink-0 relative z-10 shadow-lg"> {/* <<< THÊM/SỬA Ở ĐÂY */}
+
         {/* Logo */}
-        <div className="h-20 flex items-center px-6">
+        <div className="h-20 flex items-center justify-center px-6"> {/* Căn giữa logo */}
           <img src={logo} alt="Logo" className="h-10 w-auto" />
         </div>
+
         {/* Nav Links */}
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (
@@ -72,23 +76,24 @@ export const SharedLayout = () => {
               key={item.name}
               to={item.to}
               end={item.to === "/dashboard"}
-              className={getNavLinkClass} // Sử dụng hàm đã sửa
+              className={getNavLinkClass}
             >
               <img src={item.icon} alt="" className="w-6 h-6" />
               <span>{item.name}</span>
             </NavLink>
           ))}
         </nav>
+
         {/* Logout Section */}
-        <div className="p-4 mt-auto border-t border-gray-200">
-          <div className="w-full h-36 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+        <div className="p-4 mt-auto border-t border-gray-100"> {/* Màu border nhạt hơn */}
+          <div className="w-full h-36 rounded-lg mb-4 flex items-center justify-center overflow-hidden bg-blue-50"> {/* Thêm nền nhẹ */}
             <img
               src={support}
               alt="illustration"
-              className="h-full w-full object-contain"
+              className="h-full w-auto object-contain p-2" /* Điều chỉnh object-fit và padding */
             />
           </div>
-          <button className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 font-medium">
+          <button className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 font-medium">
             <img src={iconLogout} alt="" className="w-6 h-6" />
             <span>Logout</span>
           </button>
@@ -96,25 +101,27 @@ export const SharedLayout = () => {
       </aside>
 
       {/* === KHUNG NỘI DUNG CHÍNH === */}
-      <main className="flex-1 bg-blue-700 overflow-y-auto flex flex-col">
+      {/* Bỏ bg-blue-700 ở đây vì đã đặt ở div cha ngoài cùng */}
+      <main className="flex-1 overflow-y-auto flex flex-col">
         {/* Thanh tìm kiếm */}
-        <div className="p-6 sticky top-0 bg-blue-700 z-10">
+        <div className="p-6 sticky top-0 bg-blue-700 z-10"> {/* Giữ nền xanh cho thanh search */}
           <div className="relative">
             <input
               type="search"
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+              // Style lại thanh search cho giống ảnh hơn
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-900 placeholder-gray-400"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon />
+              <SearchIcon /> {/* Icon search đã có */}
             </div>
           </div>
         </div>
 
         {/* Nội dung trang con */}
-        <div className="p-8 pt-0 flex-1">
+        <div className="p-8 pt-4 flex-1"> {/* Giảm padding top */}
           <Outlet />
         </div>
       </main>

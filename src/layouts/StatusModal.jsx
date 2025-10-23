@@ -6,7 +6,7 @@ export const StatusModal = ({ isOpen, onClose, title, children }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-300">
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full relative transform transition-all duration-300 scale-100 opacity-100">
-        <div className="flex justify-between items-center mb-4 border-b pb-3">
+        <div className="flex justify-between items-center mb-4 pb-3">
           {title && (
             <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
           )}

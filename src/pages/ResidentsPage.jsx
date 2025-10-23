@@ -77,7 +77,7 @@ const ResidentItem = ({ resident, onEditClick, isDeleteMode, onDeleteClick }) =>
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center space-x-4 mb-4">
+    <div className="bg-white rounded-2xl shadow-md p-5 flex items-center space-x-6 relative overflow-hidden mb-4">
       {/* Avatar */}
       <div className="flex-shrink-0">
         <UserCircleIcon />

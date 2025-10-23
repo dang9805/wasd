@@ -62,12 +62,11 @@ const PaymentItem = ({ item }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-5 flex items-center space-x-6 relative overflow-hidden mb-4">
+    <div className="bg-white rounded-2xl shadow-md p-5 flex items-center space-x-6 relative overflow-hidden mb-4">
       {/* Thanh xanh dọc bên trái */}
-      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
-
+      <div className="absolute left-4 top-3 bottom-3 w-1.5 bg-blue-500 rounded-full"></div>
       {/* Thông tin thanh toán */}
-      <div className="flex-1 grid grid-cols-5 gap-4 items-center pl-4">
+      <div className="flex-1 grid grid-cols-5 gap-4 items-center pl-8"> 
         {/* Cột 1: ID */}
         <div className="text-center">
           <p className="text-xs text-gray-500 mb-1">Thanh toán ID</p>
