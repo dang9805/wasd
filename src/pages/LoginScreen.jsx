@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import passwordIcon from "../images/password_icon.svg";
 import loginBtn from "../images/login_btn.svg";
 import username from "../images/username_field.svg";
-// import vector from "../images/vector_2.svg";
 
 export const Box = () => {
   const [usernameValue, setUsernameValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -14,6 +14,16 @@ export const Box = () => {
       username: usernameValue,
       password: passwordValue,
     });
+    // Giả lập login thất bại (thay bằng logic thực tế hoặc kết quả API)
+    const loginSuccess = false; // hoặc: const loginSuccess = await apiLogin(...)
+    if (!loginSuccess) {
+      setErrorMessage(
+        "MẬT KHẨU HOẶC TÊN NGƯỜI DÙNG ĐIỀN SAI, VUI LÒNG ĐIỀN LẠI!"
+      );
+      return;
+    }
+    setErrorMessage("");
+    // ...existing code tiếp theo...
   };
 
   const handleForgotPassword = () => {
@@ -37,7 +47,10 @@ export const Box = () => {
             id="username-input"
             type="text"
             value={usernameValue}
-            onChange={(e) => setUsernameValue(e.target.value)}
+            onChange={(e) => {
+              setUsernameValue(e.target.value);
+              setErrorMessage("");
+            }}
             className="absolute inset-0 w-full h-full bg-transparent text-white [font-family:'Montserrat-Medium',Helvetica] font-medium text-lg"
             style={{
               paddingLeft: "clamp(4.5rem, 5vw, 5rem)",
@@ -58,7 +71,10 @@ export const Box = () => {
             id="password-input"
             type="password"
             value={passwordValue}
-            onChange={(e) => setPasswordValue(e.target.value)}
+            onChange={(e) => {
+              setPasswordValue(e.target.value);
+              setErrorMessage("");
+            }}
             className="absolute inset-0 w-full h-full bg-transparent text-white [font-family:'Montserrat-Medium',Helvetica] font-medium text-lg"
             style={{
               paddingLeft: "clamp(4.5rem, 5vw, 5rem)",
@@ -91,6 +107,20 @@ export const Box = () => {
           />
         </button>
 
+        {errorMessage && (
+          <div
+            role="alert"
+            className="fixed z-50 max-w-[720px] border border-red-400 rounded-lg p-6 text-center text-red-600 bg-white/80 uppercase tracking-wide shadow-lg"
+            style={{
+              left: "50%",
+              top: "calc(55% + 180px)",
+              transform: "translate(-50%, 0)",
+              pointerEvents: "none",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
         <div className="w-full flex justify-end">
           <button
             onClick={handleForgotPassword}
