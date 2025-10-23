@@ -71,6 +71,10 @@ export const ProfilePage = () => {
     setIsEditing(true); // Bật chế độ chỉnh sửa
   };
 
+  const cancelEditClick = () => {
+    setIsEditing(false); // Tắt chế độ chỉnh sửa
+  }
+
   // Hàm xử lý khi thay đổi nội dung input
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,7 +108,7 @@ export const ProfilePage = () => {
             className="p-1 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Chỉnh sửa thông tin"
           >
-            <img src={EditButtonImage} alt="Edit" className="w-6 h-6" />
+            <img src={EditButtonImage} alt="Edit" className="w-8 h-8" />
           </button>
         )}
       </div>
@@ -204,10 +208,20 @@ export const ProfilePage = () => {
 
         {/* --- 8. THÊM NÚT CONFIRM (chỉ hiển thị khi isEditing={true}) --- */}
         {isEditing && (
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end items-center pt-4 border-t border-gray-200 space-y-3 sm:space-y-0 sm:space-x-4">
+            {/* Nút Hủy */}
+            <button
+              type="button"
+              onClick={cancelEditClick}
+              className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-8 rounded-lg transition-colors"
+            >
+              Hủy
+            </button>
+            {/* Nút Confirm */}
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg transition-colors"
+q
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg transition-colors"
             >
               Confirm
             </button>
