@@ -17,12 +17,13 @@ import { PaymentPage } from "./pages/PaymentPage.jsx";
 import { QRCodePayment } from "./pages/QRCodePayment.jsx";
 import { NotificationsPage } from "./pages/NotificationsPage.jsx";
 import { ProfilePage } from "./pages/ProfilePage.jsx"; // <<< 1. IMPORT YOUR NEW PAGE
+import { ResidentsPage } from "./pages/ResidentsPage.jsx";
 
 // --- TẠO CÁC TRANG PLACEHOLDER CHO DASHBOARD ---
 // const DashboardHome = () => <h1 className="text-3xl font-bold text-white">Trang chủ Dashboard</h1>; // <<< 2. REMOVE OR COMMENT OUT OLD
-const ResidentsPage = () => (
-  <h1 className="text-3xl font-bold text-white">Quản lý Dân cư</h1>
-);
+// const ResidentsPage = () => (
+//   <h1 className="text-3xl font-bold text-white">Quản lý Dân cư</h1>
+// );
 const ServicesPage = () => (
   <h1 className="text-3xl font-bold text-white">Quản lý Dịch vụ</h1>
 );

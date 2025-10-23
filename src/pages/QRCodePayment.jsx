@@ -65,7 +65,6 @@ export const QRCodePayment = () => {
           src={qrImage}
           alt="QR Code Thanh toán"
           className="w-64 h-64 object-contain cursor-pointer"
-          onClick={handleQRCodeClick}
         />
       </div>
 
@@ -90,13 +89,21 @@ export const QRCodePayment = () => {
             <span className="font-medium">{paymentDetails.accountNumber}</span>
           </div>
         </div>
-        {/* Nút Quay lại */}
-        <div className="flex justify-end">
+        {/* Nút Quay lại và Kiểm tra */}
+        <div className="flex justify-between mt-6"> {/* Thêm mt-6 để có khoảng cách với phần trên */}
           <button
             onClick={handleGoBack}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors duration-200"
+            // Style nút quay lại (ví dụ: nền xám)
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-md transition-colors duration-200"
           >
             Quay lại
+          </button>
+          <button
+            onClick={handleQRCodeClick}
+            // Style nút kiểm tra (giữ nguyên màu xanh)
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors duration-200"
+          >
+            Kiểm tra
           </button>
         </div>
       </div>
