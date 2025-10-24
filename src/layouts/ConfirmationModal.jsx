@@ -1,14 +1,22 @@
 // src/layouts/ConfirmationModal.jsx
 import React from "react";
 
-export const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+export const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full relative transform transition-all duration-300 scale-100 opacity-100">
         {title && (
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">{title}</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+            {title}
+          </h2>
         )}
         <p className="text-gray-700 mb-6 text-center">{message}</p>
         <div className="flex justify-center space-x-4">
@@ -17,7 +25,7 @@ export const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }
             onClick={onClose} // <<<< Đảm bảo nút Hoãn tác gọi onClose
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-md transition-colors duration-200"
           >
-            Hoãn tác
+            Hoàn tác
           </button>
           {/* ===================== */}
           <button
