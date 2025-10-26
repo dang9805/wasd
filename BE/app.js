@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(cors());
 
 // --- MySQL connection (khuyến nghị: chuyển sang POOL & dùng biến môi trường) ---
-const db = mysql.createConnection({
+const db = mysql.createConnection({ 
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || 'hungnohb123', // -> put into env var in production
@@ -368,7 +368,7 @@ app.listen(port, () => {
   console.log(`🚀 Server chạy tại http://localhost:${port}`);
 });
 
-// THÊM API LOGIN MỚI NGAY TẠI ĐÂY ==
+// -------- API ĐĂNG NHẬP --------
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -376,12 +376,8 @@ app.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Thiếu username hoặc password' });
   }
 
-  // --- CẢNH BÁO QUAN TRỌNG ---
-  // Bảng `residents` của bạn không thấy có trường `username` hay `password`.
-  // Bạn cần thêm các trường này vào database.
-  // Giả sử bạn dùng `email` làm username và có một trường tên `password`.
-  // *** TRONG THỰC TẾ, KHÔNG BAO GIỜ LƯU PASSWORD TRỰC TIẾP, PHẢI HASH NÓ ***
-
+  // Giả sử bạn dùng 'email' làm username và có trường 'password' trong bảng residents
+  // CẢNH BÁO: KHÔNG BAO GIỜ LƯU PASSWORD DẠNG CHỮ THƯỜNG TRONG DATABASE
   const sql = `SELECT * FROM residents WHERE email = ? AND password = ? LIMIT 1`;
   
   db.query(sql, [username, password], (err, results) => {
@@ -393,11 +389,9 @@ app.post('/login', (req, res) => {
     }
 
     // Đăng nhập thành công
-    // Gửi về thông tin user (trừ password)
     const user = results[0];
-    delete user.password; // Xóa password trước khi gửi về client
+    delete user.password; // Xóa password trước khi gửi về FE
     
-    // (Trong dự án thực tế, bạn sẽ tạo và gửi về một JWT Token ở đây)
     res.json({ message: 'Đăng nhập thành công', user: user });
   });
 });

@@ -12,7 +12,7 @@ CREATE TABLE residents (
 -- DÙNG CHO US 008 VÀ 009: thanh toán và tra cứu
 CREATE TABLE payments (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  resident_id INT NOT NULL,
+  resident_id BIGINT UNSIGNED NOT NULL,
   amount DECIMAL(12,2) NOT NULL,
   state ENUM('pending','success','failed') DEFAULT 'pending',
   transaction_ref VARCHAR(50) UNIQUE NOT NULL,
@@ -130,10 +130,13 @@ create table notifications(
 select * FROM notifications;
 select * from residents;
 select * from payments;
+SET sql_safe_updates = 0;
 delete from payments;
 delete from residents;
 delete from notifications;
 
+SET sql_safe_updates = 1;
+SET FOREIGN_KEY_CHECKS = 0;
 -- reset auto_increment
 TRUNCATE TABLE payments;
 TRUNCATE TABLE residents;
@@ -153,3 +156,4 @@ SELECT id, resident_id, amount, state, transaction_ref, feetype, payment_date, p
 FROM payments;
 ALTER TABLE residents AUTO_INCREMENT = 1;
 
+SET FOREIGN_KEY_CHECKS = 1;
