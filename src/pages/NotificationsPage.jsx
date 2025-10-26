@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 // Bỏ import Link nếu không dùng
 // import { Link } from "react-router-dom";
 import { StatusModal } from "../layouts/StatusModal";
@@ -7,15 +7,10 @@ import { ConfirmationModal } from "../layouts/ConfirmationModal";
 import acceptIcon from "../images/accept_icon.png";
 import notAcceptIcon from "../images/not_accept_icon.png";
 
-const initialNotificationData = [
-  // Giả sử có thêm trường 'recipient' và 'content' hoặc chúng sẽ được lấy từ API khi sửa
-  { id: "156782", type: "Sửa chữa tòa nhà", date: "20/12/2005", recipient: "All", content: "Nội dung sửa chữa tòa nhà" },
-  { id: "156970", type: "Thanh toán hóa đơn", date: "30/10/2005", recipient: "P.713", content: "Nội dung thanh toán hóa đơn" },
-  { id: "156772", type: "Nợ phí", date: "1/6/2005", recipient: "P.712", content: "Nội dung nợ phí" },
-  { id: "156782-2", type: "Phí dịch vụ", date: "20/12/2005", recipient: "P.711", content: "Nội dung phí dịch vụ" },
-];
+// --- Xóa initialNotificationData ---
+// const initialNotificationData = [...]; 
 
-// --- 1. Cập nhật NotificationItem ---
+// --- Component hiển thị một mục thông báo (Giữ nguyên) ---
 const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) => { // Thêm onEditClick
 
   const handleActionClick = () => {
@@ -39,15 +34,19 @@ const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) =>
           <p className="text-xs text-gray-500 mb-1">Thông báo ID</p>
           <p className="font-semibold">{item.id}</p>
         </div>
-        {/* Cột 2: Loại */}
+        {/* Cột 2: Người nhận (apartment_id) */}
         <div>
-          <p className="text-xs text-gray-500 mb-1">Loại thông báo</p>
-          <p className="font-medium">{item.type}</p>
+          <p className="text-xs text-gray-500 mb-1">Người nhận</p>
+          {/* BE trả về apartment_id, dùng nó làm recipient */}
+          <p className="font-medium">{item.apartment_id || item.recipient}</p>
         </div>
         {/* Cột 3: Ngày gửi */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Ngày gửi</p>
-          <p className="text-gray-600">{item.date}</p>
+          <p className="text-gray-600">
+             {/* Định dạng ngày tháng từ BE */}
+            {item.notification_date ? new Date(item.notification_date).toLocaleDateString('vi-VN') : '---'}
+          </p>
         </div>
       </div>
 
@@ -71,29 +70,60 @@ const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) =>
 
 
 export const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState(initialNotificationData);
+  const [notifications, setNotifications] = useState([]); // Khởi tạo rỗng
+  const [isLoading, setIsLoading] = useState(false); // Thêm state loading
+  const [error, setError] = useState(null); // Thêm state error
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  // State cho form Add (giữ nguyên)
+  // State cho form Add
   const [addNotificationId, setAddNotificationId] = useState("");
-  const [addRecipient, setAddRecipient] = useState("");
+  const [addRecipient, setAddRecipient] = useState(""); // recipient tương ứng với apartment_id
   const [addContent, setAddContent] = useState("");
 
-  // --- 2. THÊM STATE CHO EDIT MODAL ---
+  // State cho EDIT MODAL
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingNotification, setEditingNotification] = useState(null); // Thông báo đang sửa
-  const [editFormData, setEditFormData] = useState({ recipient: '', content: '' }); // Dữ liệu form sửa
+  const [editingNotification, setEditingNotification] = useState(null);
+  const [editFormData, setEditFormData] = useState({ recipient: '', content: '' }); 
 
   // State cho modal thông báo kết quả
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const [modalStatus, setModalStatus] = useState(null); // 'addSuccess', 'addFailure', 'deleteSuccess', 'deleteFailure', 'editSuccess', 'editFailure'
+  const [modalStatus, setModalStatus] = useState(null); 
   const [statusMessage, setStatusMessage] = useState("");
 
-  // State cho chế độ xóa & modal xác nhận (giữ nguyên)
+  // State cho chế độ xóa & modal xác nhận
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
+  
+  // ====================================================================
+  // --- 1. HÀM FETCH DỮ LIỆU TỪ API (GET /notifications) ---
+  // ====================================================================
+  const fetchNotifications = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+        const response = await fetch('/api/notifications'); 
+        if (!response.ok) {
+            throw new Error('Không thể tải dữ liệu thông báo.');
+        }
+        const data = await response.json();
+        // BE trả về apartment_id, date dưới dạng ISO. FE hiển thị recipient, date định dạng VN.
+        // BE fields: id, content, apartment_id, notification_date
+        setNotifications(data);
+    } catch (err) {
+        console.error('Fetch Error:', err);
+        setError(err.message);
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
-  // --- HÀM CHO MODAL THÊM MỚI (giữ nguyên, chỉ sửa modalStatus) ---
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // ====================================================================
+  // --- 2. HÀM THÊM MỚI (POST /notifications) ---
+  // ====================================================================
   const handleAddNotificationClick = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
@@ -101,37 +131,56 @@ export const NotificationsPage = () => {
     setAddRecipient("");
     setAddContent("");
   };
-  const handleAddFormSubmit = (e) => {
+  const handleAddFormSubmit = async (e) => {
     e.preventDefault();
-    const newNotification = {
-        id: addNotificationId,
-        recipient: addRecipient,
-        content: addContent,
-        type: "Thông báo mới", // Hoặc loại mặc định/lấy từ form
-        date: new Date().toLocaleDateString('vi-VN') // Ngày hiện tại
-    };
-    console.log("Submitting new notification:", newNotification);
-    const isSuccess = Math.random() > 0.3; // 70% thành công
-
+    setError(null);
+    
+    // apartment_id (người nhận) và content là bắt buộc
+    if (!addRecipient || !addContent) {
+      setError("Vui lòng điền đủ Người nhận và Nội dung.");
+      return;
+    }
+    
     handleCloseAddModal(); // Đóng modal thêm
 
-    if (isSuccess) {
-        setNotifications(prev => [newNotification, ...prev]); // Thêm vào đầu danh sách
+    try {
+        const response = await fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                apartment_id: addRecipient, // recipient là apartment_id trong BE
+                content: addContent 
+            }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "Lỗi! Thêm thông báo mới không thành công");
+        }
+
+        // Thành công: fetch lại danh sách
+        fetchNotifications();
         setModalStatus("addSuccess");
         setStatusMessage("Đã thêm thông báo mới!");
-    } else {
+
+    } catch (err) {
+        console.error('API Error:', err);
         setModalStatus("addFailure");
-        setStatusMessage("Lỗi! Thêm thông báo mới không thành công");
+        setStatusMessage(err.message);
     }
     setIsStatusModalOpen(true); // Mở modal trạng thái
   };
 
-  // --- 3. THÊM HÀM CHO MODAL CHỈNH SỬA ---
+  // ====================================================================
+  // --- 3. HÀM CHỈNH SỬA (PUT /notifications/:id) ---
+  // ====================================================================
   const handleOpenEditModal = (notification) => {
     setEditingNotification(notification);
+    // recipient là apartment_id trong BE
     setEditFormData({
-        recipient: notification.recipient || '', // Lấy recipient từ item
-        content: notification.content || ''      // Lấy content từ item
+        recipient: notification.apartment_id || notification.recipient || '', 
+        content: notification.content || ''
     });
     setIsEditModalOpen(true);
   };
@@ -147,35 +196,44 @@ export const NotificationsPage = () => {
     setEditFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editingNotification) return;
 
-    console.log("Submitting edit for notification ID:", editingNotification.id, "Data:", editFormData);
-    const isSuccess = Math.random() > 0.3; // 70% thành công
-
     handleCloseEditModal(); // Đóng modal sửa
+    setError(null);
 
-    if (isSuccess) {
-        // Cập nhật thông báo trong state
-        setNotifications(prev =>
-            prev.map(noti =>
-                noti.id === editingNotification.id
-                ? { ...noti, ...editFormData, date: new Date().toLocaleDateString('vi-VN') } // Cập nhật recipient, content và ngày
-                : noti
-            )
-        );
+    try {
+        const response = await fetch(`/api/notifications/${editingNotification.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                apartment_id: editFormData.recipient, // recipient là apartment_id trong BE
+                content: editFormData.content
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Chỉnh sửa thông báo không thành công!");
+        }
+
+        // Thành công: fetch lại danh sách
+        fetchNotifications();
         setModalStatus("editSuccess");
         setStatusMessage("Chỉnh sửa thông báo thành công!");
-    } else {
+
+    } catch (err) {
+        console.error('API Error:', err);
         setModalStatus("editFailure");
-        setStatusMessage("Chỉnh sửa thông báo không thành công!");
+        setStatusMessage(err.message);
     }
     setIsStatusModalOpen(true); // Mở modal trạng thái
   };
 
 
-  // --- HÀM XỬ LÝ XÓA (giữ nguyên) ---
+  // ====================================================================
+  // --- 4. HÀM XỬ LÝ XÓA (DELETE /notifications/:id) ---
+  // ====================================================================
   const toggleDeleteMode = () => setIsDeleteMode(!isDeleteMode);
   const handleDeleteItemClick = (id) => {
     setItemToDeleteId(id);
@@ -185,19 +243,34 @@ export const NotificationsPage = () => {
     setShowConfirmModal(false);
     setItemToDeleteId(null);
   };
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     setShowConfirmModal(false);
-    const isSuccess = Math.random() > 0.3; // 70% thành công
-    if (isSuccess) {
-      setNotifications(notifications.filter(item => item.id !== itemToDeleteId));
-      setModalStatus("deleteSuccess");
-      setStatusMessage("Đã xóa thông báo thành công!");
-    } else {
-      setModalStatus("deleteFailure");
-      setStatusMessage("Xóa thông báo không thành công!");
+    setError(null);
+    
+    try {
+        const response = await fetch(`/api/notifications/${itemToDeleteId}`, {
+            method: 'DELETE',
+        });
+        
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "Xóa thông báo không thành công!");
+        }
+
+        // Thành công: fetch lại danh sách
+        fetchNotifications();
+        setModalStatus("deleteSuccess");
+        setStatusMessage("Đã xóa thông báo thành công!");
+
+    } catch (err) {
+        console.error('API Error:', err);
+        setModalStatus("deleteFailure");
+        setStatusMessage(err.message);
+    } finally {
+        setItemToDeleteId(null);
+        setIsStatusModalOpen(true);
     }
-    setIsStatusModalOpen(true);
-    setItemToDeleteId(null);
   };
 
   // --- HÀM ĐÓNG/RENDER MODAL STATUS (giữ nguyên) ---
@@ -219,6 +292,16 @@ export const NotificationsPage = () => {
       </div>
     );
   };
+
+  // --- RENDER LOADING VÀ ERROR ---
+  if (isLoading) {
+    return <div className="text-white text-lg p-4">Đang tải thông báo...</div>;
+  }
+  
+  if (error) {
+    return <div className="text-red-400 text-lg p-4">Lỗi tải dữ liệu: {error}</div>;
+  }
+  // -----------------------------
 
   return (
     <div>
@@ -252,27 +335,35 @@ export const NotificationsPage = () => {
 
       {/* Danh sách thông báo */}
       <div className="space-y-4">
-        {notifications.map((item) => (
-          <NotificationItem
-            key={item.id}
-            item={item}
-            isDeleteMode={isDeleteMode}
-            onDeleteClick={handleDeleteItemClick}
-            onEditClick={handleOpenEditModal} // <<< Truyền hàm mở modal sửa
-          />
-        ))}
+        {notifications.length === 0 ? (
+           <div className="bg-white p-6 rounded-lg text-center text-gray-500">
+              Không có thông báo nào để hiển thị.
+           </div>
+        ) : (
+             notifications.map((item) => (
+                <NotificationItem
+                  key={item.id}
+                  item={item}
+                  isDeleteMode={isDeleteMode}
+                  onDeleteClick={handleDeleteItemClick}
+                  onEditClick={handleOpenEditModal} // <<< Truyền hàm mở modal sửa
+                />
+            ))
+        )}
       </div>
 
-      {/* Add Notification Form Modal (Form giữ nguyên) */}
+      {/* Add Notification Form Modal */}
       <StatusModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
         title="Thêm thông báo mới"
       >
+         {/* Hiển thị lỗi nếu có */}
+         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         {/* ... (Form thêm giữ nguyên) ... */}
          <form onSubmit={handleAddFormSubmit} className="space-y-4">
-           {/* Thông báo ID */}
-          <div>
+           {/* Thông báo ID (Tự động tăng, không cần input này cho POST) */}
+          {/* <div>
             <label htmlFor="add-notificationId" className="block text-sm font-medium text-gray-700 mb-1">
               Thông báo ID
             </label>
@@ -285,18 +376,18 @@ export const NotificationsPage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
             />
-          </div>
+          </div> */}
           {/* Người nhận */}
           <div>
             <label htmlFor="add-recipient" className="block text-sm font-medium text-gray-700 mb-1">
-              Người nhận
+              Người nhận (apartment_id)
             </label>
             <input
               type="text"
               id="add-recipient"
               value={addRecipient}
               onChange={(e) => setAddRecipient(e.target.value)}
-              placeholder="Enter here"
+              placeholder="Ví dụ: P.713 hoặc All"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
             />
@@ -328,7 +419,7 @@ export const NotificationsPage = () => {
         </form>
       </StatusModal>
 
-      {/* --- 4. THÊM MODAL CHỈNH SỬA --- */}
+      {/* --- MODAL CHỈNH SỬA --- */}
       <StatusModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
@@ -348,15 +439,15 @@ export const NotificationsPage = () => {
              {/* Người nhận */}
             <div>
               <label htmlFor="edit-recipient" className="block text-sm font-medium text-gray-700 mb-1">
-                Người nhận
+                Người nhận (apartment_id)
               </label>
               <input
                 type="text"
                 id="edit-recipient"
-                name="recipient" // Quan trọng: name phải khớp key trong editFormData
+                name="recipient" 
                 value={editFormData.recipient}
                 onChange={handleEditFormChange}
-                placeholder="Enter here"
+                placeholder="Ví dụ: P.713 hoặc All"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 required
               />
@@ -368,11 +459,11 @@ export const NotificationsPage = () => {
               </label>
               <textarea
                 id="edit-content"
-                name="content" // Quan trọng: name phải khớp key trong editFormData
+                name="content" 
                 rows="4"
-                // value={editFormData.content}
+                value={editFormData.content}
                 onChange={handleEditFormChange}
-                placeholder={editFormData.content}
+                placeholder="Enter here"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 required
               ></textarea>
