@@ -8,22 +8,48 @@ export const Box = () => {
   const [passwordValue, setPasswordValue] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleLogin = (e) => {
+  // file: src/pages/LoginScreen.jsx
+
+  const handleLogin = async (e) => { // 1. Thêm 'async'
     e.preventDefault();
-    console.log("Login attempted with:", {
-      username: usernameValue,
-      password: passwordValue,
-    });
-    // Giả lập login thất bại (thay bằng logic thực tế hoặc kết quả API)
-    const loginSuccess = false; // hoặc: const loginSuccess = await apiLogin(...)
-    if (!loginSuccess) {
-      setErrorMessage(
-        "MẬT KHẨU HOẶC TÊN NGƯỜI DÙNG ĐIỀN SAI, VUI LÒNG ĐIỀN LẠI!"
-      );
+    setErrorMessage(""); // Xóa lỗi cũ
+
+    if (!usernameValue || !passwordValue) {
+      setErrorMessage("Vui lòng nhập cả Username và Password!");
       return;
     }
-    setErrorMessage("");
-    // ...existing code tiếp theo...
+
+    try {
+      // 2. Gọi API bằng proxy (bắt đầu bằng '/api')
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: usernameValue, // Đây sẽ là email
+          password: passwordValue,
+        }),
+      });
+
+      const data = await response.json();
+
+      // 3. Xử lý kết quả
+      if (!response.ok) {
+        // Lỗi từ server (ví dụ: 401 - sai pass)
+        setErrorMessage(data.error || "MẬT KHẨU HOẶC TÊN NGƯỜI DÙNG ĐIỀN SAI!");
+      } else {
+        // Đăng nhập thành công
+        console.log("Đăng nhập thành công:", data.user);
+        // (Tại đây, bạn sẽ chuyển hướng người dùng hoặc lưu token)
+        // ví dụ: window.location.href = '/dashboard';
+      }
+
+    } catch (error) {
+      // Lỗi mạng (server BE chưa chạy?)
+      console.error("Lỗi khi gọi API login:", error);
+      setErrorMessage("Không thể kết nối đến máy chủ. Vui lòng thử lại sau.");
+    }
   };
 
   const handleForgotPassword = () => {
