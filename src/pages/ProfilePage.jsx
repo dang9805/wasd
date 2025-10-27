@@ -56,7 +56,7 @@ const EditableField = ({ label, value, isEditing, onChange, name }) => (
 const initialUserData = {
   name: "Đỗ Văn B",
   residentId: "0002",
-  role: "Cư dân",
+  role: "Ban quản trị",
   apartment: "Tầng 7 - Phòng 713",
   cccd: "077204000123",
   dob: "30/10/1999",

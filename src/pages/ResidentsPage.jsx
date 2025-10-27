@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 // Giả định bạn có component Modal để sử dụng lại cho việc Thêm/Sửa
 // Nếu chưa có, bạn có thể tự thay thế bằng một div cố định.
-const ResidentFormModal = ({ isOpen, onClose, residentData, onSave }) => {
-    const isEditing = !!residentData;
+const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = false }) => { // <<< THÊM isViewing
+    const isEditing = !!residentData && !isViewing; // Không phải Editing nếu đang Viewing
+    
+    // Nếu ở chế độ xem, ta không cần tracking form data thay đổi, nhưng cần data ban đầu
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -21,7 +23,7 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave }) => {
 
     useEffect(() => {
         if (residentData) {
-            // Chuẩn bị dữ liệu cho form khi ở chế độ chỉnh sửa
+            // Chuẩn bị dữ liệu cho form
             setFormData({
                 ...residentData,
                 // Định dạng ngày tháng cho input type="date"
@@ -31,16 +33,19 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave }) => {
             // Reset form khi tạo mới
             setFormData({ first_name: '', last_name: '', phone: '', apartment_id: '', email: '', role: 'Cư dân', residency_status: 'người thuê', cccd: '', birth_date: '', state: 'active' });
         }
-    }, [residentData, isOpen]);
+        setError(''); // Reset lỗi khi mở modal
+    }, [residentData, isOpen, isViewing]);
 
 
     const handleChange = (e) => {
+        if (isViewing) return; // Không cho phép thay đổi khi xem
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isViewing) return; // Ngăn không cho submit khi xem
         setError('');
 
         // Kiểm tra trường bắt buộc (theo BE/app.js)
@@ -78,61 +83,77 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave }) => {
 
     if (!isOpen) return null;
 
+    // Xác định title cho Modal
+    const modalTitle = isViewing ? 'Chi tiết Cư dân' : (isEditing ? 'Chỉnh sửa Cư dân' : 'Thêm Cư dân mới');
+
+    // Thuộc tính readOnly cho input
+    const readOnlyProp = isViewing ? { readOnly: true } : {};
+
+
     return (
         // Giao diện Modal Sáng
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-2xl text-gray-900"> {/* Nền trắng, chữ đen */}
-                <h2 className="text-xl font-bold mb-4">{isEditing ? 'Chỉnh sửa Cư dân' : 'Thêm Cư dân mới'}</h2>
-                {error && <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded mb-4">{error}</div>}
+                <h2 className="text-xl font-bold mb-4">{modalTitle}</h2> {/* <<< Dùng modalTitle */}
+                {/* Chỉ hiện lỗi khi KHÔNG ở chế độ xem */}
+                {error && !isViewing && <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded mb-4">{error}</div>}
                 
+                {/* Ở chế độ xem, ta vẫn dùng form để tránh thay đổi quá nhiều cấu trúc, nhưng ngăn chặn submit */}
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                     {/* Hàng 1: First Name / Last Name */}
-                    <InputGroup label="Tên (First Name)" name="first_name" value={formData.first_name} onChange={handleChange} required />
-                    <InputGroup label="Họ (Last Name)" name="last_name" value={formData.last_name} onChange={handleChange} required />
+                    <InputGroup label="Tên (First Name)" name="first_name" value={formData.first_name} onChange={handleChange} required readOnly={isViewing} /> {/* <<< THÊM readOnly */}
+                    <InputGroup label="Họ (Last Name)" name="last_name" value={formData.last_name} onChange={handleChange} required readOnly={isViewing} />
 
                     {/* Hàng 2: Phone / Apartment ID */}
-                    <InputGroup label="Số điện thoại" name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
-                    <InputGroup label="Mã căn hộ" name="apartment_id" value={formData.apartment_id} onChange={handleChange} required />
+                    <InputGroup label="Số điện thoại" name="phone" type="tel" value={formData.phone} onChange={handleChange} required readOnly={isViewing} />
+                    <InputGroup label="Mã căn hộ" name="apartment_id" value={formData.apartment_id} onChange={handleChange} required readOnly={isViewing} />
                     
                     {/* Hàng 3: Email / CCCD */}
-                    <InputGroup label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
-                    <InputGroup label="CCCD" name="cccd" value={formData.cccd} onChange={handleChange} />
+                    <InputGroup label="Email" name="email" type="email" value={formData.email} onChange={handleChange} readOnly={isViewing} />
+                    <InputGroup label="CCCD" name="cccd" value={formData.cccd} onChange={handleChange} readOnly={isViewing} />
 
                     {/* Hàng 4: Ngày sinh / Trạng thái cư trú */}
-                    <InputGroup label="Ngày sinh" name="birth_date" type="date" value={formData.birth_date} onChange={handleChange} />
+                    <InputGroup label="Ngày sinh" name="birth_date" type="date" value={formData.birth_date} onChange={handleChange} readOnly={isViewing} />
                     <SelectGroup 
                         label="Trạng thái cư trú" 
                         name="residency_status" 
                         value={formData.residency_status} 
                         onChange={handleChange}
                         options={['chủ hộ', 'người thuê', 'khách tạm trú']}
+                        disabled={isViewing} // <<< THÊM disabled
                     />
                     
-                    {/* Hàng 5: Vai trò / Trạng thái (Chỉ hiện khi Sửa) */}
+                    {/* Hàng 5: Vai trò / Trạng thái */}
                     <SelectGroup 
                         label="Vai trò" 
                         name="role" 
                         value={formData.role} 
                         onChange={handleChange}
                         options={['Quản lý', 'Cư dân']}
+                        disabled={isViewing}
                     />
-                    {isEditing && (
-                        <SelectGroup 
-                            label="Trạng thái" 
-                            name="state" 
-                            value={formData.state} 
-                            onChange={handleChange}
-                            options={['active', 'inactive']}
-                        />
-                    )}
+                    {/* Luôn hiện trạng thái, nhưng chỉ cho chỉnh sửa khi là editing */}
+                    <SelectGroup 
+                        label="Trạng thái" 
+                        name="state" 
+                        value={formData.state} 
+                        onChange={handleChange}
+                        options={['active', 'inactive']}
+                        disabled={isViewing || !isEditing} // <<< THÊM disabled
+                    />
 
                     <div className="col-span-2 flex justify-end space-x-4 mt-6">
+                        {/* Nút Đóng/Hủy (luôn hiện) */}
                         <button type="button" onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors">
-                            Hủy
+                            {isViewing ? 'Đóng' : 'Hủy'} {/* Đổi text thành Đóng khi xem */}
                         </button>
-                        <button type="submit" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">
-                            {isEditing ? 'Lưu Thay Đổi' : 'Thêm Mới'}
-                        </button>
+                        
+                        {/* Nút Xác nhận/Thêm mới (Chỉ hiện khi KHÔNG ở chế độ xem) */}
+                        {!isViewing && (
+                            <button type="submit" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">
+                                {isEditing ? 'Lưu Thay Đổi' : 'Thêm Mới'}
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
@@ -141,7 +162,8 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave }) => {
 };
 
 // Component Helper cho Input (Giao diện Sáng)
-const InputGroup = ({ label, name, value, onChange, type = 'text', required = false }) => (
+// Cập nhật để chấp nhận readOnly prop
+const InputGroup = ({ label, name, value, onChange, type = 'text', required = false, readOnly = false }) => (
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label} {required && <span className="text-red-500">*</span>}</label>
         <input
@@ -149,21 +171,32 @@ const InputGroup = ({ label, name, value, onChange, type = 'text', required = fa
             name={name}
             value={value || ''}
             onChange={onChange}
-            required={required}
-            className="p-2 border border-gray-300 bg-white rounded text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            required={required && !readOnly} // Nếu là readOnly thì không bắt buộc
+            readOnly={readOnly} // <<< THÊM readOnly
+            className={`p-2 border border-gray-300 rounded text-sm focus:outline-none ${
+                readOnly 
+                    ? 'bg-gray-100 text-gray-600 cursor-default' // Style khi readOnly
+                    : 'bg-white text-gray-900 focus:border-blue-500' // Style khi có thể chỉnh sửa
+            }`}
         />
     </div>
 );
 
 // Component Helper cho Select (Giao diện Sáng)
-const SelectGroup = ({ label, name, value, onChange, options }) => (
+// Cập nhật để chấp nhận disabled prop
+const SelectGroup = ({ label, name, value, onChange, options, disabled = false }) => (
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>
         <select
             name={name}
             value={value || ''}
             onChange={onChange}
-            className="p-2 border border-gray-300 bg-white rounded text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            disabled={disabled} // <<< THÊM disabled
+            className={`p-2 border border-gray-300 rounded text-sm focus:outline-none ${
+                disabled
+                    ? 'bg-gray-100 text-gray-600 cursor-default' // Style khi disabled
+                    : 'bg-white text-gray-900 focus:border-blue-500' // Style khi có thể chỉnh sửa
+            }`}
         >
             {options.map(option => (
                 <option key={option} value={option}>{option}</option>
@@ -180,8 +213,14 @@ export const ResidentsPage = () => {
     const [residents, setResidents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    // --- State cho Modal Thêm/Sửa ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingResident, setEditingResident] = useState(null);
+    
+    // --- State MỚI cho Modal Chi tiết/Xem ---
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false); // <<< THÊM
+    const [viewingResident, setViewingResident] = useState(null); // <<< THÊM
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [residentToDelete, setResidentToDelete] = useState(null);
@@ -218,6 +257,12 @@ export const ResidentsPage = () => {
     const handleEditClick = (resident) => {
         setEditingResident(resident); 
         setIsModalOpen(true);
+    };
+    
+    // --- VIEW (Xem chi tiết) ---
+    const handleViewClick = (resident) => { // <<< HÀM MỚI
+        setViewingResident(resident); 
+        setIsViewModalOpen(true);
     };
 
     const handleSave = () => {
@@ -256,11 +301,11 @@ export const ResidentsPage = () => {
 
 
     if (isLoading) {
-        return <div className="p-8 text-white text-lg bg-blue-600 min-h-screen">Đang tải dữ liệu cư dân...</div>;
+        return <div className="p-8 text-white text-lg bg-blue-700 min-h-screen">Đang tải dữ liệu cư dân...</div>;
     }
 
     if (error) {
-        return <div className="p-8 text-red-100 text-lg bg-blue-600 min-h-screen">Lỗi tải dữ liệu: {error}</div>;
+        return <div className="p-8 text-red-100 text-lg bg-blue-700 min-h-screen">Lỗi tải dữ liệu: {error}</div>;
     }
 
     return (
@@ -335,7 +380,12 @@ export const ResidentsPage = () => {
                                 {/* Cột 5: Thông tin chi tiết */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">Thông tin chi tiết</span>
-                                    <button className="text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold">Xem thêm</button> {/* Màu text xanh dương */}
+                                    {/* <<< THAY NÚT XEM THÊM THÀNH GỌI handleViewClick */}
+                                    <button 
+                                        onClick={() => handleViewClick(resident)}
+                                        className="text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold">
+                                        Xem thêm
+                                    </button>
                                 </div>
                             </div>
 
@@ -364,7 +414,19 @@ export const ResidentsPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 residentData={editingResident}
                 onSave={handleSave}
+                isViewing={false} // <<< Chế độ sửa/thêm
             />
+            
+            {/* --- MODAL XEM CHI TIẾT MỚI --- */}
+            <ResidentFormModal
+                isOpen={isViewModalOpen} // <<< Dùng state mới
+                onClose={() => setIsViewModalOpen(false)} // <<< Dùng state mới
+                residentData={viewingResident} // <<< Dùng state mới
+                onSave={() => {}} // Không cần hàm save
+                isViewing={true} // <<< CHẾ ĐỘ CHỈ XEM
+            />
+            {/* ----------------------------- */}
+
             {isConfirmModalOpen && residentToDelete && (
                  <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
                     {/* ... Confirmation Modal content (Nên đổi sang giao diện sáng nếu cần) ... */}

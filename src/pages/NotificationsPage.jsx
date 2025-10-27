@@ -10,7 +10,7 @@ import notAcceptIcon from "../images/not_accept_icon.png";
 // --- Xóa initialNotificationData ---
 // const initialNotificationData = [...]; 
 
-// --- Component hiển thị một mục thông báo (Giữ nguyên) ---
+// --- Component hiển thị một mục thông báo (ĐÃ SỬA) ---
 const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) => { // Thêm onEditClick
 
   const handleActionClick = () => {
@@ -21,26 +21,47 @@ const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) =>
     }
   };
 
+  // --- LOGIC CẮT NGẮN NỘI DUNG ---
+  const truncateContent = (content, limit = 12) => {
+    if (!content) return "---";
+    const trimmedContent = content.trim();
+    if (trimmedContent.length > limit) {
+      // Cắt chuỗi và đảm bảo không cắt đứt từ nếu có thể (lấy 12 ký tự đầu)
+      return trimmedContent.substring(0, limit) + '...';
+    }
+    return trimmedContent;
+  };
+  // --------------------------------
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-4 flex items-center relative overflow-hidden mb-4">
       <div className="absolute left-4 top-3 bottom-3 w-1.5 bg-blue-500 rounded-full"></div>
 
-      {/* Nội dung thông báo */}
-      {/* Giảm thành 3 cột */}
-      <div className="flex-1 grid grid-cols-3 gap-4 items-center pl-8 pr-4 text-gray-800">
+      {/* Nội dung thông báo: Tăng lên 4 cột (ID, Người nhận, Nội dung, Ngày gửi) */}
+      <div className="flex-1 grid grid-cols-4 gap-4 items-center pl-8 pr-4 text-gray-800">
+        
         {/* Cột 1: ID */}
         <div className="text-center">
           <p className="text-xs text-gray-500 mb-1">Thông báo ID</p>
           <p className="font-semibold">{item.id}</p>
         </div>
+        
         {/* Cột 2: Người nhận (apartment_id) */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Người nhận</p>
           {/* BE trả về apartment_id, dùng nó làm recipient */}
           <p className="font-medium">{item.apartment_id || item.recipient}</p>
         </div>
-        {/* Cột 3: Ngày gửi */}
+        
+        {/* Cột MỚI: Nội dung */}
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Nội dung</p>
+          <p className="font-medium text-gray-700" title={item.content}>
+            {truncateContent(item.content)}
+          </p>
+        </div>
+        
+        {/* Cột 4: Ngày gửi */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Ngày gửi</p>
           <p className="text-gray-600">
