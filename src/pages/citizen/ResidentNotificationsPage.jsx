@@ -186,7 +186,7 @@ export const ResidentNotificationsPage = () => {
       {/* Header và Nút */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Thông Báo</h1>
-        <div className="flex space-x-4">
+        {/* <div className="flex space-x-4">
           <button
             onClick={toggleDeleteMode} // Bật/tắt chế độ xóa
             className={`${
@@ -197,7 +197,7 @@ export const ResidentNotificationsPage = () => {
           >
             {isDeleteMode ? "Hoàn tất" : "Xóa thông báo"}
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Danh sách thông báo */}

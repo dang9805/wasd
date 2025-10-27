@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // <<< ADD useParams
+import { useNavigate, useParams } from "react-router-dom"; 
 
 // --- Component hiển thị modal trạng thái ---
 import { StatusModal } from "../layouts/StatusModal"; 
@@ -11,7 +11,7 @@ import notAcceptIcon from "../images/not_accept_icon.png";
 
 export const QRCodePayment = () => {
   const navigate = useNavigate();
-  const { invoiceId } = useParams(); // <<< Lấy ID từ URL
+  const { invoiceId } = useParams(); 
   
   const [showModal, setShowModal] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success' or 'failure'
@@ -21,12 +21,24 @@ export const QRCodePayment = () => {
   // State chứa thông tin thanh toán
   const [paymentDetails, setPaymentDetails] = useState({
       id: invoiceId, 
-      transactionRef: null, // Sẽ được cập nhật sau khi fetch
+      transactionRef: null, 
       amount: "Đang tải...",
       feetype: "Đang tải...",
       accountName: "CÔNG TY QUẢN LÝ BLUE MOON", // Dữ liệu mock
       accountNumber: "999988887777" // Dữ liệu mock
   });
+
+  // --- HÀM XÁC ĐỊNH URL CHUYỂN HƯỚNG ---
+  const getSuccessRedirectUrl = () => {
+    // window.location.pathname chứa đường dẫn hiện tại (ví dụ: /dashboard/payment/123/qr)
+    // Nếu nó chứa '/resident_dashboard', thì chuyển hướng về trang của dân cư.
+    if (window.location.pathname.includes('/resident_dashboard')) {
+        return '/resident_dashboard/payment';
+    }
+    // Ngược lại, chuyển hướng về trang của BQT (mặc định)
+    return '/dashboard/payment';
+  };
+  // ------------------------------------
 
   // --- Fetch payment details và transactionRef ---
   useEffect(() => {
@@ -99,8 +111,9 @@ export const QRCodePayment = () => {
             // 3. Navigate back to payment list on success after short delay
             if (isSuccess) {
                  setTimeout(() => {
-                    // Chuyển hướng về trang danh sách thanh toán
-                    navigate('/dashboard/payment'); 
+                    // CHUYỂN HƯỚNG TỚI URL ĐÚNG VAI TRÒ
+                    const redirectUrl = getSuccessRedirectUrl();
+                    navigate(redirectUrl); 
                  }, 1500); 
             }
             
