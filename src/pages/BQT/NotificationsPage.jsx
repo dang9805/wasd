@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 // Bỏ import Link nếu không dùng
 // import { Link } from "react-router-dom";
-import { StatusModal } from "../layouts/StatusModal";
-import { ConfirmationModal } from "../layouts/ConfirmationModal";
+import { StatusModal } from "../../layouts/StatusModal";
+import { ConfirmationModal } from "../../layouts/ConfirmationModal";
 
-import acceptIcon from "../images/accept_icon.png";
-import notAcceptIcon from "../images/not_accept_icon.png";
+import acceptIcon from "../../images/accept_icon.png";
+import notAcceptIcon from "../../images/not_accept_icon.png";
 
 // --- Xóa initialNotificationData ---
 // const initialNotificationData = [...]; 

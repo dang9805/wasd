@@ -36,7 +36,7 @@ export const ResidentBox = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate("/login");
+    navigate("/resident_dashboard");
   };
 
   return (

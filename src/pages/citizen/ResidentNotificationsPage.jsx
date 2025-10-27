@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 // Bỏ import Link nếu không dùng
 // import { Link } from "react-router-dom";
-import { StatusModal } from "../layouts/StatusModal";
-import { ConfirmationModal } from "../layouts/ConfirmationModal";
+import { StatusModal } from "../../layouts/StatusModal";
+import { ConfirmationModal } from "../../layouts/ConfirmationModal";
 
-import acceptIcon from "../images/accept_icon.png";
-import notAcceptIcon from "../images/not_accept_icon.png";
+import acceptIcon from "../../images/accept_icon.png";
+import notAcceptIcon from "../../images/not_accept_icon.png";
 
 const initialNotificationData = [
   // Giả sử có thêm trường 'recipient' và 'content' hoặc chúng sẽ được lấy từ API khi sửa

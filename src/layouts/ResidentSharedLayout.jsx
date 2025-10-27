@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom"; // <<< THÊM useNavigate
 
 // --- Imports ---
 import logo from "../images/company-s-logo.png";
@@ -48,6 +48,14 @@ const SearchIcon = () => (
 
 export const ResidentSharedLayout = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate(); // <<< SỬ DỤNG useNavigate
+
+  // Hàm xử lý Logout
+  const handleLogout = () => {
+    // Xóa session/token (nếu có)
+    // ...
+    navigate("/welcome"); // <<< CHUYỂN HƯỚNG VỀ TRANG WELCOME
+  };
 
   // === SỬA TẠI ĐÂY: Thanh active bên TRÁI ===
   const getNavLinkClass = ({ isActive }) => {
@@ -108,7 +116,10 @@ export const ResidentSharedLayout = () => {
               className="h-full w-auto object-contain p-2" /* Điều chỉnh object-fit và padding */
             />
           </div>
-          <button className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 font-medium">
+          <button 
+            onClick={handleLogout} // <<< THÊM onClick
+            className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 font-medium"
+          >
             <img src={iconLogout} alt="" className="w-6 h-6" />
             <span>Logout</span>
           </button>
