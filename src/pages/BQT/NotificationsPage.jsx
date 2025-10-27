@@ -233,38 +233,69 @@ export const NotificationsPage = () => {
     setEditFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Trích đoạn trong handleEditSubmit của NotificationsPage.jsx
   const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (!editingNotification) return;
+      e.preventDefault();
+      if (!editingNotification) return;
 
-    handleCloseEditModal(); // Đóng modal sửa
-    setError(null);
+      handleCloseEditModal(); // Đóng modal sửa
+      setError(null);
 
-    try {
-        const response = await fetch(`/api/notifications/${editingNotification.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                apartment_id: editFormData.recipient, // recipient là apartment_id trong BE
-                content: editFormData.content
-            }),
-        });
+      try {
+          const response = await fetch(`/api/notifications/${editingNotification.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  apartment_id: editFormData.recipient,
+                  content: editFormData.content
+              }),
+          });
 
-        if (!response.ok) {
-            throw new Error("Chỉnh sửa thông báo không thành công!");
-        }
+          // <--- BƯỚC QUAN TRỌNG: XỬ LÝ LỖI TRƯỚC KHI response.json() --->
+          if (!response.ok && response.status !== 404) {
+              // Nếu là lỗi 404, có thể không có body hoặc body là HTML
+              // Nếu là lỗi 500, body có thể là JSON (lỗi BE) hoặc HTML (lỗi server)
+              
+              // Hãy cố gắng đọc body: nếu nó không phải JSON, response.json() sẽ thất bại và bị bắt bởi catch(err) bên dưới
+              const text = await response.text();
+              
+              if (response.headers.get('content-type')?.includes('application/json')) {
+                  const result = JSON.parse(text);
+                  throw new Error(result.error || `Lỗi ${response.status}: Vấn đề Server`);
+              } else {
+                  // Nếu nhận HTML/text, báo lỗi chung chung (tránh lỗi JSON parse)
+                  console.error('API returned non-JSON content:', text.substring(0, 50) + '...');
+                  throw new Error(`Lỗi ${response.status}: Server trả về nội dung không phải JSON.`);
+              }
+          }
+          
+          // Nếu response.ok, hãy đọc JSON (hoặc nếu là 200/204 thành công và không có body thì vẫn tiếp tục)
+          let result = {};
+          try {
+              // Cố gắng đọc JSON (vì Backend của bạn có trả về {message: ...})
+              result = await response.json(); 
+          } catch (e) {
+              // Bỏ qua lỗi JSON parse nếu response là 204 No Content (hợp lệ cho PUT)
+              if (response.status !== 204 && response.status !== 200) {
+                  throw new Error("Lỗi đọc phản hồi JSON.");
+              }
+          }
+          
+          if (result.error) {
+              throw new Error(result.error);
+          }
 
-        // Thành công: fetch lại danh sách
-        fetchNotifications();
-        setModalStatus("editSuccess");
-        setStatusMessage("Chỉnh sửa thông báo thành công!");
+          // Thành công: fetch lại danh sách
+          fetchNotifications();
+          setModalStatus("editSuccess");
+          setStatusMessage("Chỉnh sửa thông báo thành công!");
 
-    } catch (err) {
-        console.error('API Error:', err);
-        setModalStatus("editFailure");
-        setStatusMessage(err.message);
-    }
-    setIsStatusModalOpen(true); // Mở modal trạng thái
+      } catch (err) {
+          console.error('API Error:', err);
+          setModalStatus("editFailure");
+          setStatusMessage(err.message || "Lỗi mạng hoặc server không phản hồi.");
+      }
+      setIsStatusModalOpen(true); // Mở modal trạng thái
   };
 
 

@@ -91,7 +91,7 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
 
     return (
         // Giao diện Modal Sáng
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-2xl text-gray-900"> {/* Nền trắng, chữ đen */}
                 <h2 className="text-xl font-bold mb-4">{modalTitle}</h2> {/* <<< UPDATED */}
                 {/* Chỉ hiện lỗi khi KHÔNG ở chế độ xem */}
@@ -160,7 +160,6 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
 };
 
 // Component Helper cho Input (Giao diện Sáng)
-// Thêm prop readOnly và style tương ứng
 const InputGroup = ({ label, name, value, onChange, type = 'text', required = false, readOnly = false }) => ( // <<< UPDATED
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label} {required && <span className="text-red-500">*</span>}</label>
@@ -181,7 +180,6 @@ const InputGroup = ({ label, name, value, onChange, type = 'text', required = fa
 );
 
 // Component Helper cho Select (Giao diện Sáng)
-// Thêm prop disabled và style tương ứng
 const SelectGroup = ({ label, name, value, onChange, options, disabled = false }) => ( // <<< UPDATED
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>
@@ -202,6 +200,7 @@ const SelectGroup = ({ label, name, value, onChange, options, disabled = false }
         </select>
     </div>
 );
+// ... (End Component Helper) ...
 
 
 // =========================================================================
@@ -212,26 +211,22 @@ export const ResidentsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // --- State cho Modal Thêm/Sửa ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingResident, setEditingResident] = useState(null);
     
-    // --- State cho Modal Chi tiết/Xem ---
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false); // <<< NEW
-    const [viewingResident, setViewingResident] = useState(null); // <<< NEW
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [viewingResident, setViewingResident] = useState(null);
 
-    // --- State cho Xóa và Status Modal ---
-    const [isDeleteMode, setIsDeleteMode] = useState(false); // <<< NEW
+    const [isDeleteMode, setIsDeleteMode] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [residentToDelete, setResidentToDelete] = useState(null);
-    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false); // <<< NEW
-    const [modalStatus, setModalStatus] = useState(null); // 'success' or 'failure' <<< NEW
-    const [statusMessage, setStatusMessage] = useState(""); // <<< NEW
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [modalStatus, setModalStatus] = useState(null);
+    const [statusMessage, setStatusMessage] = useState("");
     
-    // --- State cho Thanh Tìm kiếm (Chỉ lọc theo ID) ---
-    const [searchTerm, setSearchTerm] = useState(""); // <<< NEW
+    const [searchTerm, setSearchTerm] = useState("");
 
-    // --- READ (Đọc danh sách cư dân) ---
+    // --- READ (Đọc danh sách cư dân - remains unchanged) ---
     const fetchResidents = async () => {
         setIsLoading(true);
         setError('');
@@ -254,19 +249,16 @@ export const ResidentsPage = () => {
         fetchResidents();
     }, []);
     
-    // --- LOGIC LỌC DỮ LIỆU ---
+    // --- LOGIC LỌC DỮ LIỆU (remains unchanged) ---
     const filteredResidents = residents.filter(resident => {
-        // Nếu không có searchTerm, trả về tất cả
         if (!searchTerm.trim()) {
             return true;
         }
-        // Lọc theo ID (Chuyển ID thành chuỗi để so sánh)
-        // Sử dụng .includes để tìm kiếm khớp một phần
         return String(resident.id).includes(searchTerm.trim());
     });
     // -----------------------------
 
-    // --- CREATE / UPDATE (Thêm/Sửa) ---
+    // --- CREATE / UPDATE (Thêm/Sửa - remains unchanged) ---
     const handleAddClick = () => {
         setEditingResident(null); 
         setIsModalOpen(true);
@@ -281,37 +273,33 @@ export const ResidentsPage = () => {
         fetchResidents();
     };
     
-    // --- VIEW (Xem chi tiết) ---
-    const handleViewClick = (resident) => { // <<< NEW
+    // --- VIEW (Xem chi tiết - remains unchanged) ---
+    const handleViewClick = (resident) => {
         setViewingResident(resident); 
         setIsViewModalOpen(true);
     };
     
-    // --- LOGIC XỬ LÝ CHẾ ĐỘ XÓA ---
-    const toggleDeleteMode = () => { // <<< NEW
+    // --- LOGIC XỬ LÝ CHẾ ĐỘ XÓA (remains unchanged) ---
+    const toggleDeleteMode = () => {
         setIsDeleteMode(!isDeleteMode);
-        // Reset deletion related states if exiting delete mode
         if (isDeleteMode) {
             setResidentToDelete(null);
             setIsConfirmModalOpen(false);
         }
     };
 
-    // Hàm mở Confirmation Modal khi click nút Xóa trên card
-    const handleDeleteClick = (resident) => { // <<< NEW
+    const handleDeleteClick = (resident) => {
         setResidentToDelete(resident);
         setIsConfirmModalOpen(true);
     };
     
-    // Hàm đóng Status Modal
-    const handleCloseStatusModal = () => { // <<< NEW
+    const handleCloseStatusModal = () => {
         setIsStatusModalOpen(false);
         setModalStatus(null);
         setStatusMessage("");
     };
 
-    // Hàm Render nội dung Status Modal
-    const renderStatusModalContent = () => { // <<< NEW
+    const renderStatusModalContent = () => {
         if (!modalStatus) return null;
         const isSuccess = modalStatus === "success";
         const icon = isSuccess ? acceptIcon : notAcceptIcon;
@@ -325,15 +313,15 @@ export const ResidentsPage = () => {
         );
     };
 
-    // --- DELETE (Xóa mềm - soft delete) ---
+    // --- DELETE (Xóa mềm - soft delete - remains unchanged) ---
     const confirmDelete = async () => {
         if (!residentToDelete) return;
         
-        setIsConfirmModalOpen(false); // Đóng modal xác nhận
+        setIsConfirmModalOpen(false);
         
         try {
             const response = await fetch(`/api/residents/${residentToDelete.id}`, {
-                method: 'DELETE', // API của bạn thực hiện soft delete
+                method: 'DELETE',
             });
             
             const result = await response.json();
@@ -342,7 +330,7 @@ export const ResidentsPage = () => {
                 throw new Error(result.error || 'Lỗi khi xóa cư dân.');
             }
 
-            fetchResidents(); // Cập nhật danh sách
+            fetchResidents();
             setModalStatus("success");
             setStatusMessage(`Đã xóa cư dân ID ${residentToDelete.id} thành công.`);
 
@@ -352,7 +340,7 @@ export const ResidentsPage = () => {
             setStatusMessage(err.message || "Xóa cư dân thất bại.");
         } finally {
             setResidentToDelete(null);
-            setIsStatusModalOpen(true); // Mở modal kết quả
+            setIsStatusModalOpen(true);
         }
     };
 
@@ -366,12 +354,13 @@ export const ResidentsPage = () => {
     }
 
     return (
-        <div className="flex-1 p-8 bg-blue-700 min-h-screen text-white"> {/* Nền xanh dương sáng */}
+        <div className="flex-1 p-8 bg-blue-700 min-h-screen text-white">
             
-            {/* --- THANH TÌM KIẾM CỤC BỘ (FULL WIDTH) --- */}
+            {/* --- THANH TÌM KIẾM CỤC BỘ (ĐÃ SỬA ĐỂ KHỚP VỚI NOTIFICATION PAGE) --- */}
             <div className="flex justify-start items-center mb-6">
-                <div className="relative w-full max-w-full"> {/* <<< FULL WIDTH */}
+                <div className="relative w-full max-w-full">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        {/* Search Icon */}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -381,7 +370,7 @@ export const ResidentsPage = () => {
                         placeholder="Tìm theo ID cư dân..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" // <<< py-2.5 cho chiều cao lớn hơn
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" 
                     />
                 </div>
             </div>
@@ -402,83 +391,74 @@ export const ResidentsPage = () => {
                 )}
                 {/* Nút Xóa / Hoàn tất */}
                 <button
-                    onClick={toggleDeleteMode} // <<< UPDATED
+                    onClick={toggleDeleteMode}
                     className={`${
                         isDeleteMode
                             ? "bg-gray-500 hover:bg-gray-600"
                             : "bg-red-500 hover:bg-red-700"
                     } text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center text-sm`}
                 >
-                    {isDeleteMode ? "Hoàn tất" : "Xóa cư dân"} {/* <<< UPDATED */}
+                    {isDeleteMode ? "Hoàn tất" : "Xóa cư dân"}
                 </button>
             </div>
 
-            {/* Danh sách thẻ cư dân */}
-            <div className="space-y-4"> {/* Khoảng cách dọc giữa các thẻ */}
-                {filteredResidents.length === 0 ? ( // <<< UPDATED: Dùng filteredResidents
-                    <div className="bg-white p-6 rounded-lg text-center text-gray-500"> {/* Nền thẻ trắng */}
+            {/* Danh sách thẻ cư dân (remains unchanged) */}
+            <div className="space-y-4">
+                {filteredResidents.length === 0 ? (
+                    <div className="bg-white p-6 rounded-lg text-center text-gray-500">
                         Không có cư dân nào phù hợp với tìm kiếm.
                     </div>
                 ) : (
-                    filteredResidents.map((resident) => ( // <<< UPDATED: Dùng filteredResidents
-                        // Thẻ thông tin cư dân (Giao diện Sáng)
-                        <div key={resident.id} className="bg-white p-4 rounded-lg shadow-md flex items-center space-x-6 relative text-gray-900"> {/* Nền trắng, chữ đen */}
-                            {/* Icon User */}
-                            <div className="bg-gray-100 p-3 rounded-full flex-shrink-0"> {/* Nền icon xám nhạt */}
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"> {/* Màu icon xám */}
+                    filteredResidents.map((resident) => (
+                        <div key={resident.id} className="bg-white p-4 rounded-lg shadow-md flex items-center space-x-6 relative text-gray-900">
+                            <div className="bg-gray-100 p-3 rounded-full flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
 
-                            {/* Khối thông tin 5 cột */}
-                            <div className="flex-grow grid grid-cols-5 gap-x-8 items-center text-sm"> {/* Tăng gap-x */}
-                                {/* Cột 1: Họ và Tên */}
+                            <div className="flex-grow grid grid-cols-5 gap-x-8 items-center text-sm">
                                 <div className="flex flex-col">
-                                    <span className="text-gray-500 text-xs mb-1">Họ và tên</span> {/* Màu label xám */}
-                                    <span className="font-semibold text-gray-900 truncate text-sm" title={resident.full_name}>{resident.full_name}</span> {/* Chữ đen */}
+                                    <span className="text-gray-500 text-xs mb-1">Họ và tên</span>
+                                    <span className="font-semibold text-gray-900 truncate text-sm" title={resident.full_name}>{resident.full_name}</span>
                                 </div>
                                 
-                                {/* Cột 2: ID Dân cư (THAY ĐỔI TỪ SĐT) */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">ID Dân cư</span>
-                                    <span className="font-semibold text-gray-900 text-sm">{resident.id}</span> {/* Hiển thị ID */}
+                                    <span className="font-semibold text-gray-900 text-sm">{resident.id}</span>
                                 </div>
                                 
-                                {/* Cột 3: Ngày sinh */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">Ngày sinh</span>
-                                    <span className="font-semibold text-gray-900 text-sm"> {/* Chữ đen */}
+                                    <span className="font-semibold text-gray-900 text-sm">
                                         {resident.birth_date ? new Date(resident.birth_date).toLocaleDateString('vi-VN') : '--/--/----'}
                                     </span>
                                 </div>
                                 
-                                {/* Cột 4: Số căn hộ */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">Số căn hộ</span>
-                                    <span className="font-semibold text-gray-900 text-sm">{resident.apartment_id}</span> {/* Chữ đen */}
+                                    <span className="font-semibold text-gray-900 text-sm">{resident.apartment_id}</span>
                                 </div>
                                 
-                                {/* Cột 5: Thông tin chi tiết */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">Thông tin chi tiết</span>
                                     <button 
-                                        onClick={() => handleViewClick(resident)} // <<< UPDATED
-                                        className={`text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold ${isDeleteMode ? 'opacity-0 pointer-events-none' : ''}`}> {/* <<< UPDATED */}
+                                        onClick={() => handleViewClick(resident)}
+                                        className={`text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold ${isDeleteMode ? 'opacity-0 pointer-events-none' : ''}`}>
                                         Xem thêm
                                     </button>
                                 </div>
                             </div>
 
-                             {/* Nút Chỉnh sửa / Xóa cư dân */}
                             <button
-                                onClick={() => isDeleteMode ? handleDeleteClick(resident) : handleEditClick(resident)} // <<< UPDATED: Logic chuyển đổi
+                                onClick={() => isDeleteMode ? handleDeleteClick(resident) : handleEditClick(resident)}
                                 className={`ml-auto flex-shrink-0 font-semibold py-1 px-3 rounded-md transition-colors text-sm bg-transparent border-none ${
                                     isDeleteMode
-                                        ? 'text-red-600 hover:text-red-800' // Style Xóa
-                                        : 'text-blue-500 hover:text-blue-700' // Style Chỉnh sửa
+                                        ? 'text-red-600 hover:text-red-800'
+                                        : 'text-blue-500 hover:text-blue-700'
                                 }`}
                             >
-                                {isDeleteMode ? 'Xóa cư dân' : 'Chỉnh sửa'} {/* <<< UPDATED */}
+                                {isDeleteMode ? 'Xóa cư dân' : 'Chỉnh sửa'}
                             </button>
 
                             {/* Trạng thái "Đã xóa" */}
@@ -492,7 +472,7 @@ export const ResidentsPage = () => {
                 )}
             </div>
 
-            {/* Modals */}
+            {/* Modals (remains unchanged) */}
             <ResidentFormModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -501,7 +481,6 @@ export const ResidentsPage = () => {
                 isViewing={false}
             />
             
-            {/* --- MODAL XEM CHI TIẾT --- */}
             <ResidentFormModal
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
@@ -509,9 +488,7 @@ export const ResidentsPage = () => {
                 onSave={() => {}}
                 isViewing={true}
             />
-            {/* ----------------------------- */}
-
-            {/* Confirmation Modal (Xác nhận trước khi xóa) */}
+            
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
@@ -520,7 +497,6 @@ export const ResidentsPage = () => {
                 message={`Bạn có chắc chắn muốn xóa cư dân ID ${residentToDelete?.id || 'này'} không? (Thao tác này là soft delete)`}
             />
             
-            {/* Status Modal (Hiển thị kết quả xóa) */}
             <StatusModal
                 isOpen={isStatusModalOpen}
                 onClose={handleCloseStatusModal}

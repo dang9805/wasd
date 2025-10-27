@@ -364,35 +364,60 @@ app.put('/notifications/:id', (req, res) => {
 
   if (!id) return res.status(400).json({ error: 'Thiếu id thông báo' });
 
-  // Không có trường nào để sửa
-  if (!apartment_id && !content && !notification_date && typeof sent_date === 'undefined') {
-    return res.status(400).json({ error: 'Không có trường nào để cập nhật' });
+  // 1️⃣ Chuẩn bị các trường cần cập nhật (chỉ bao gồm trường có giá trị không rỗng)
+  const updateFields = [];
+  const updateParams = [];
+  
+  // apartment_id
+  if (apartment_id !== undefined && apartment_id.trim() !== '') {
+      updateFields.push('apartment_id = ?');
+      updateParams.push(apartment_id.trim());
+  } else if (apartment_id === '') {
+      // Báo lỗi nếu trường NOT NULL bị xóa trắng
+      return res.status(400).json({ error: 'Trường Người nhận (apartment_id) không được để trống.' });
   }
 
-  // 1️⃣ Kiểm tra thông báo có tồn tại không
-  const checkSql = 'SELECT id FROM notifications WHERE id = ? LIMIT 1';
-  db.query(checkSql, [id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+  // content
+  if (content !== undefined && content.trim() !== '') {
+      updateFields.push('content = ?');
+      updateParams.push(content.trim());
+  } else if (content === '') {
+      // Báo lỗi nếu trường NOT NULL bị xóa trắng
+      return res.status(400).json({ error: 'Trường Nội dung không được để trống.' });
+  }
+
+  // Các trường tùy chọn khác (notification_date, sent_date)
+  if (notification_date !== undefined) {
+      updateFields.push('notification_date = ?');
+      updateParams.push(notification_date || null);
+  }
+  if (sent_date !== undefined) {
+      updateFields.push('sent_date = ?');
+      updateParams.push(sent_date); // Giá trị này có thể là null nếu muốn xóa ngày gửi
+  }
+
+  // Kiểm tra nếu không có trường nào để cập nhật (không phải lỗi, nhưng là 400 hợp lý)
+  if (updateFields.length === 0) {
+    return res.status(400).json({ error: 'Không có trường nào hợp lệ để cập nhật.' });
+  }
+
+  // Thêm ID vào cuối danh sách tham số
+  updateParams.push(id); 
+
+  // 2️⃣ Cập nhật thông báo
+  const sql = `UPDATE notifications SET ${updateFields.join(', ')} WHERE id = ?`;
+  
+  // Bỏ qua checkSql do đã kiểm tra ở FE và sẽ kiểm tra affectedRows
+  db.query(sql, updateParams, (err2, result) => {
+    if (err2) return res.status(500).json({ error: err2.message });
+
+    if (result.affectedRows === 0) {
+        // Nếu không có dòng nào bị ảnh hưởng, có nghĩa là ID không tồn tại
+        return res.status(404).json({ error: 'Không tìm thấy thông báo để cập nhật' });
     }
 
-    // 2️⃣ Cập nhật thông báo
-    const sql = `
-      UPDATE notifications
-      SET 
-        apartment_id = COALESCE(?, apartment_id),
-        content = COALESCE(?, content),
-        notification_date = COALESCE(?, notification_date),
-        sent_date = CASE WHEN ? IS NOT NULL THEN ? ELSE sent_date END
-      WHERE id = ?
-    `;
-    const sentDateParam = sent_date !== undefined ? sent_date : null;
-
-    db.query(sql, [apartment_id || null, content || null, notification_date || null, sentDateParam, sentDateParam, id], (err2, result) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json({ message: 'Cập nhật thông báo thành công' });
-    });
+    // Cập nhật thành công (200 OK)
+    res.json({ message: 'Cập nhật thông báo thành công' });
   });
 });
 
