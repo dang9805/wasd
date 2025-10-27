@@ -355,6 +355,71 @@ app.get('/payments/:id', (req, res) => {
   });
 });
 
+// -------- PUT /notifications/:id — chỉnh sửa thông báo --------
+app.put('/notifications/:id', (req, res) => {
+  const { id } = req.params;
+  const { apartment_id, content, notification_date, sent_date } = req.body || {};
+
+  if (!id) return res.status(400).json({ error: 'Thiếu id thông báo' });
+
+  // Không có trường nào để sửa
+  if (!apartment_id && !content && !notification_date && typeof sent_date === 'undefined') {
+    return res.status(400).json({ error: 'Không có trường nào để cập nhật' });
+  }
+
+  // 1️⃣ Kiểm tra thông báo có tồn tại không
+  const checkSql = 'SELECT id FROM notifications WHERE id = ? LIMIT 1';
+  db.query(checkSql, [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+    }
+
+    // 2️⃣ Cập nhật thông báo
+    const sql = `
+      UPDATE notifications
+      SET 
+        apartment_id = COALESCE(?, apartment_id),
+        content = COALESCE(?, content),
+        notification_date = COALESCE(?, notification_date),
+        sent_date = CASE WHEN ? IS NOT NULL THEN ? ELSE sent_date END
+      WHERE id = ?
+    `;
+    const sentDateParam = sent_date !== undefined ? sent_date : null;
+
+    db.query(sql, [apartment_id || null, content || null, notification_date || null, sentDateParam, sentDateParam, id], (err2, result) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ message: 'Cập nhật thông báo thành công' });
+    });
+  });
+});
+
+// -------- DELETE payment (xóa hẳn giao dịch) --------
+app.delete('/payments/:id', (req, res) => {
+  const { id } = req.params;
+
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+
+  // 1️⃣ Kiểm tra giao dịch có tồn tại không
+  const checkSql = 'SELECT id FROM payments WHERE id = ? LIMIT 1';
+  db.query(checkSql, [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy giao dịch để xóa' });
+    }
+
+    // 2️⃣ Xóa hẳn giao dịch
+    const deleteSql = 'DELETE FROM payments WHERE id = ?';
+    db.query(deleteSql, [id], (err2, result) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Không thể xóa giao dịch (có thể đã bị xóa trước đó)' });
+      }
+      res.json({ message: 'Đã xóa giao dịch thành công' });
+    });
+  });
+});
+
 
 
 
