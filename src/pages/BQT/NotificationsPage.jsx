@@ -21,7 +21,7 @@ const NotificationItem = ({ item, isDeleteMode, onDeleteClick, onEditClick }) =>
     }
   };
 
-  // --- LOGIC CẮT NGẮN NỘI DUNG ---
+  // --- LOGIC CẮT NGẮN NỘI DUNG (Cắt sau 12 ký tự) ---
   const truncateContent = (content, limit = 12) => {
     if (!content) return "---";
     const trimmedContent = content.trim();
@@ -115,6 +115,9 @@ export const NotificationsPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
   
+  // <<< NEW: State cho Thanh Tìm kiếm >>>
+  const [searchTerm, setSearchTerm] = useState(""); 
+  
   // ====================================================================
   // --- 1. HÀM FETCH DỮ LIỆU TỪ API (GET /notifications) ---
   // ====================================================================
@@ -141,6 +144,19 @@ export const NotificationsPage = () => {
   useEffect(() => {
     fetchNotifications();
   }, []);
+  
+  // <<< NEW: Logic Lọc dữ liệu (Chỉ theo ID) >>>
+  const filteredNotifications = notifications.filter(item => {
+      if (!searchTerm.trim()) {
+          return true;
+      }
+      const searchLower = searchTerm.trim().toLowerCase();
+      
+      // Chỉ lọc theo ID (id)
+      return String(item.id).toLowerCase().includes(searchLower);
+  });
+  // ---------------------------------------------
+
 
   // ====================================================================
   // --- 2. HÀM THÊM MỚI (POST /notifications) ---
@@ -326,9 +342,27 @@ export const NotificationsPage = () => {
 
   return (
     <div>
-      {/* Header và Nút (giữ nguyên) */}
+      {/* <<< NEW: Thanh Tìm kiếm Full Width >>> */}
+      <div className="flex justify-start items-center mb-6">
+          <div className="relative w-full max-w-full">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+              </span>
+              <input
+                  type="search"
+                  placeholder="Tìm theo ID thông báo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" 
+              />
+          </div>
+      </div>
+      {/* ------------------------------------- */}
+      
+      {/* Header và Nút */}
       <div className="flex justify-between items-center mb-6">
-       {/* ... */}
        <h1 className="text-3xl font-bold text-white">Thông Báo</h1>
         <div className="flex space-x-4">
           {/* Chỉ hiển thị nút Thêm khi không ở chế độ xóa */}
@@ -356,12 +390,12 @@ export const NotificationsPage = () => {
 
       {/* Danh sách thông báo */}
       <div className="space-y-4">
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? ( // <<< UPDATED: Dùng filteredNotifications
            <div className="bg-white p-6 rounded-lg text-center text-gray-500">
-              Không có thông báo nào để hiển thị.
+              Không có thông báo nào phù hợp với tìm kiếm.
            </div>
         ) : (
-             notifications.map((item) => (
+             filteredNotifications.map((item) => ( // <<< UPDATED: Dùng filteredNotifications
                 <NotificationItem
                   key={item.id}
                   item={item}
@@ -384,20 +418,6 @@ export const NotificationsPage = () => {
         {/* ... (Form thêm giữ nguyên) ... */}
          <form onSubmit={handleAddFormSubmit} className="space-y-4">
            {/* Thông báo ID (Tự động tăng, không cần input này cho POST) */}
-          {/* <div>
-            <label htmlFor="add-notificationId" className="block text-sm font-medium text-gray-700 mb-1">
-              Thông báo ID
-            </label>
-            <input
-              type="text"
-              id="add-notificationId"
-              value={addNotificationId}
-              onChange={(e) => setAddNotificationId(e.target.value)}
-              placeholder="Enter here"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              required
-            />
-          </div> */}
           {/* Người nhận */}
           <div>
             <label htmlFor="add-recipient" className="block text-sm font-medium text-gray-700 mb-1">

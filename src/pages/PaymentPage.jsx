@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// --- Xóa Dữ liệu mẫu ---
-// const paymentData = [...]; 
-
 // --- Component hiển thị một mục thanh toán ---
 const PaymentItem = ({ item }) => {
   const navigate = useNavigate();
@@ -81,6 +78,9 @@ export const PaymentPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // State cho Thanh Tìm kiếm
+    const [searchTerm, setSearchTerm] = useState(""); 
+    
     // Hàm Fetch dữ liệu từ BE
     const fetchPayments = async () => {
         setIsLoading(true);
@@ -110,6 +110,20 @@ export const PaymentPage = () => {
     useEffect(() => {
         fetchPayments();
     }, []);
+    
+    // Logic Lọc dữ liệu (Chỉ theo ID)
+    const filteredPayments = payments.filter(payment => {
+        if (!searchTerm.trim()) {
+            return true;
+        }
+        const searchLower = searchTerm.trim().toLowerCase();
+        
+        // <<< CHỈ LỌC THEO ID >>>
+        const idMatch = String(payment.id).toLowerCase().includes(searchLower);
+        
+        return idMatch;
+    });
+    // ----------------------------
 
     // Xử lý Loading State
     if (isLoading) {
@@ -123,17 +137,17 @@ export const PaymentPage = () => {
     
     // Hiển thị nội dung
     const renderContent = () => {
-        if (payments.length === 0) {
+        if (filteredPayments.length === 0) { 
             return (
                 <div className="bg-white p-6 rounded-lg text-center text-gray-500 shadow-md">
-                    Không có hóa đơn thanh toán nào để hiển thị.
+                    Không có hóa đơn thanh toán nào phù hợp với tìm kiếm.
                 </div>
             );
         }
 
         return (
             <div className="space-y-4">
-                {payments.map((item) => (
+                {filteredPayments.map((item) => ( 
                     <PaymentItem key={item.id} item={item} />
                 ))}
             </div>
@@ -142,6 +156,24 @@ export const PaymentPage = () => {
 
     return (
         <div className="text-white">
+            {/* Thanh Tìm kiếm Full Width */}
+            <div className="flex justify-start items-center mb-6">
+                <div className="relative w-full max-w-full">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        placeholder="Tìm theo ID thanh toán..." // <<< UPDATED PLACEHOLDER
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" 
+                    />
+                </div>
+            </div>
+            
             <h1 className="text-3xl font-bold mb-6 text-white">Thanh toán</h1>
             {renderContent()}
         </div>

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-// <<< IMPORTS CẦN THIẾT CHO STATUS MODAL VÀ ICON >>>
-import { StatusModal } from "../../layouts/StatusModal";
-import { ConfirmationModal } from "../../layouts/ConfirmationModal";
+import { StatusModal } from "../../layouts/StatusModal"; // <<< NEW: Import StatusModal
+import { ConfirmationModal } from "../../layouts/ConfirmationModal"; // <<< NEW: Import ConfirmationModal
 import acceptIcon from "../../images/accept_icon.png";
 import notAcceptIcon from "../../images/not_accept_icon.png";
-// ===================================================
 
 // Giả định bạn có component Modal để sử dụng lại cho việc Thêm/Sửa
 // Nếu chưa có, bạn có thể tự thay thế bằng một div cố định.
-const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = false }) => { 
+const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = false }) => { // <<< UPDATED: Add isViewing
     const isEditing = !!residentData && !isViewing; 
     
     const [formData, setFormData] = useState({
@@ -28,7 +26,7 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
 
     useEffect(() => {
         if (residentData) {
-            // Chuẩn bị dữ liệu cho form
+            // Chuẩn bị dữ liệu cho form khi ở chế độ chỉnh sửa
             setFormData({
                 ...residentData,
                 // Định dạng ngày tháng cho input type="date"
@@ -39,18 +37,18 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
             setFormData({ first_name: '', last_name: '', phone: '', apartment_id: '', email: '', role: 'Cư dân', residency_status: 'người thuê', cccd: '', birth_date: '', state: 'active' });
         }
         setError(''); // Reset lỗi khi mở modal
-    }, [residentData, isOpen, isViewing]);
+    }, [residentData, isOpen, isViewing]); // <<< UPDATED: Add isViewing dependency
 
 
     const handleChange = (e) => {
-        if (isViewing) return; // Không cho phép thay đổi khi xem
+        if (isViewing) return; // <<< NEW: Prevent change when viewing
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isViewing) return; // Ngăn không cho submit khi xem
+        if (isViewing) return; // <<< NEW: Prevent submit when viewing
         setError('');
 
         // Kiểm tra trường bắt buộc (theo BE/app.js)
@@ -93,16 +91,15 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
 
     return (
         // Giao diện Modal Sáng
-        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-2xl text-gray-900"> {/* Nền trắng, chữ đen */}
-                <h2 className="text-xl font-bold mb-4">{modalTitle}</h2> {/* Dùng modalTitle */}
+                <h2 className="text-xl font-bold mb-4">{modalTitle}</h2> {/* <<< UPDATED */}
                 {/* Chỉ hiện lỗi khi KHÔNG ở chế độ xem */}
                 {error && !isViewing && <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded mb-4">{error}</div>}
                 
-                {/* Ở chế độ xem, ta vẫn dùng form để tránh thay đổi quá nhiều cấu trúc, nhưng ngăn chặn submit */}
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                     {/* Hàng 1: First Name / Last Name */}
-                    <InputGroup label="Tên (First Name)" name="first_name" value={formData.first_name} onChange={handleChange} required readOnly={isViewing} /> 
+                    <InputGroup label="Tên (First Name)" name="first_name" value={formData.first_name} onChange={handleChange} required readOnly={isViewing} /> {/* <<< UPDATED */}
                     <InputGroup label="Họ (Last Name)" name="last_name" value={formData.last_name} onChange={handleChange} required readOnly={isViewing} />
 
                     {/* Hàng 2: Phone / Apartment ID */}
@@ -121,37 +118,37 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
                         value={formData.residency_status} 
                         onChange={handleChange}
                         options={['chủ hộ', 'người thuê', 'khách tạm trú']}
-                        disabled={isViewing} 
+                        disabled={isViewing} // <<< UPDATED
                     />
                     
-                    {/* Hàng 5: Vai trò / Trạng thái */}
+                    {/* Hàng 5: Vai trò / Trạng thái (Chỉ hiện khi Sửa) */}
                     <SelectGroup 
                         label="Vai trò" 
                         name="role" 
                         value={formData.role} 
                         onChange={handleChange}
                         options={['Quản lý', 'Cư dân']}
-                        disabled={isViewing}
+                        disabled={isViewing} // <<< UPDATED
                     />
-                    {/* Luôn hiện trạng thái, nhưng chỉ cho chỉnh sửa khi là editing */}
+                    {/* Luôn hiện Trạng thái, nhưng chỉ cho chỉnh sửa khi là editing */}
                     <SelectGroup 
                         label="Trạng thái" 
                         name="state" 
                         value={formData.state} 
                         onChange={handleChange}
                         options={['active', 'inactive']}
-                        disabled={isViewing || !isEditing} 
+                        disabled={isViewing || !isEditing} // <<< UPDATED
                     />
 
                     <div className="col-span-2 flex justify-end space-x-4 mt-6">
-                        {/* Nút Đóng/Hủy (luôn hiện) */}
+                        {/* Nút Đóng/Hủy */}
                         <button type="button" onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors">
-                            {isViewing ? 'Đóng' : 'Hủy'} {/* Đổi text thành Đóng khi xem */}
+                            {isViewing ? 'Đóng' : 'Hủy'} {/* <<< UPDATED */}
                         </button>
                         
                         {/* Nút Xác nhận/Thêm mới (Chỉ hiện khi KHÔNG ở chế độ xem) */}
-                        {!isViewing && (
-                            <button type="submit" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">
+                        {!isViewing && ( // <<< UPDATED
+                             <button type="submit" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">
                                 {isEditing ? 'Lưu Thay Đổi' : 'Thêm Mới'}
                             </button>
                         )}
@@ -163,8 +160,8 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
 };
 
 // Component Helper cho Input (Giao diện Sáng)
-// Cập nhật để chấp nhận readOnly prop
-const InputGroup = ({ label, name, value, onChange, type = 'text', required = false, readOnly = false }) => (
+// Thêm prop readOnly và style tương ứng
+const InputGroup = ({ label, name, value, onChange, type = 'text', required = false, readOnly = false }) => ( // <<< UPDATED
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label} {required && <span className="text-red-500">*</span>}</label>
         <input
@@ -172,8 +169,8 @@ const InputGroup = ({ label, name, value, onChange, type = 'text', required = fa
             name={name}
             value={value || ''}
             onChange={onChange}
-            required={required && !readOnly} // Nếu là readOnly thì không bắt buộc
-            readOnly={readOnly} // <<< THÊM readOnly
+            required={required && !readOnly} // <<< UPDATED: Required only if not readOnly
+            readOnly={readOnly} // <<< UPDATED: Pass readOnly prop
             className={`p-2 border border-gray-300 rounded text-sm focus:outline-none ${
                 readOnly 
                     ? 'bg-gray-100 text-gray-600 cursor-default' // Style khi readOnly
@@ -184,15 +181,15 @@ const InputGroup = ({ label, name, value, onChange, type = 'text', required = fa
 );
 
 // Component Helper cho Select (Giao diện Sáng)
-// Cập nhật để chấp nhận disabled prop
-const SelectGroup = ({ label, name, value, onChange, options, disabled = false }) => (
+// Thêm prop disabled và style tương ứng
+const SelectGroup = ({ label, name, value, onChange, options, disabled = false }) => ( // <<< UPDATED
     <div className="flex flex-col">
         <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>
         <select
             name={name}
             value={value || ''}
             onChange={onChange}
-            disabled={disabled} // <<< THÊM disabled
+            disabled={disabled} // <<< UPDATED: Pass disabled prop
             className={`p-2 border border-gray-300 rounded text-sm focus:outline-none ${
                 disabled
                     ? 'bg-gray-100 text-gray-600 cursor-default' // Style khi disabled
@@ -220,8 +217,8 @@ export const ResidentsPage = () => {
     const [editingResident, setEditingResident] = useState(null);
     
     // --- State cho Modal Chi tiết/Xem ---
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [viewingResident, setViewingResident] = useState(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false); // <<< NEW
+    const [viewingResident, setViewingResident] = useState(null); // <<< NEW
 
     // --- State cho Xóa và Status Modal ---
     const [isDeleteMode, setIsDeleteMode] = useState(false); // <<< NEW
@@ -230,6 +227,9 @@ export const ResidentsPage = () => {
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false); // <<< NEW
     const [modalStatus, setModalStatus] = useState(null); // 'success' or 'failure' <<< NEW
     const [statusMessage, setStatusMessage] = useState(""); // <<< NEW
+    
+    // --- State cho Thanh Tìm kiếm (Chỉ lọc theo ID) ---
+    const [searchTerm, setSearchTerm] = useState(""); // <<< NEW
 
     // --- READ (Đọc danh sách cư dân) ---
     const fetchResidents = async () => {
@@ -253,6 +253,18 @@ export const ResidentsPage = () => {
     useEffect(() => {
         fetchResidents();
     }, []);
+    
+    // --- LOGIC LỌC DỮ LIỆU ---
+    const filteredResidents = residents.filter(resident => {
+        // Nếu không có searchTerm, trả về tất cả
+        if (!searchTerm.trim()) {
+            return true;
+        }
+        // Lọc theo ID (Chuyển ID thành chuỗi để so sánh)
+        // Sử dụng .includes để tìm kiếm khớp một phần
+        return String(resident.id).includes(searchTerm.trim());
+    });
+    // -----------------------------
 
     // --- CREATE / UPDATE (Thêm/Sửa) ---
     const handleAddClick = () => {
@@ -264,19 +276,19 @@ export const ResidentsPage = () => {
         setEditingResident(resident); 
         setIsModalOpen(true);
     };
-    
-    // --- VIEW (Xem chi tiết) ---
-    const handleViewClick = (resident) => {
-        setViewingResident(resident); 
-        setIsViewModalOpen(true);
-    };
 
     const handleSave = () => {
         fetchResidents();
     };
     
+    // --- VIEW (Xem chi tiết) ---
+    const handleViewClick = (resident) => { // <<< NEW
+        setViewingResident(resident); 
+        setIsViewModalOpen(true);
+    };
+    
     // --- LOGIC XỬ LÝ CHẾ ĐỘ XÓA ---
-    const toggleDeleteMode = () => {
+    const toggleDeleteMode = () => { // <<< NEW
         setIsDeleteMode(!isDeleteMode);
         // Reset deletion related states if exiting delete mode
         if (isDeleteMode) {
@@ -286,20 +298,20 @@ export const ResidentsPage = () => {
     };
 
     // Hàm mở Confirmation Modal khi click nút Xóa trên card
-    const handleDeleteClick = (resident) => {
+    const handleDeleteClick = (resident) => { // <<< NEW
         setResidentToDelete(resident);
         setIsConfirmModalOpen(true);
     };
     
     // Hàm đóng Status Modal
-    const handleCloseStatusModal = () => {
+    const handleCloseStatusModal = () => { // <<< NEW
         setIsStatusModalOpen(false);
         setModalStatus(null);
         setStatusMessage("");
     };
 
     // Hàm Render nội dung Status Modal
-    const renderStatusModalContent = () => {
+    const renderStatusModalContent = () => { // <<< NEW
         if (!modalStatus) return null;
         const isSuccess = modalStatus === "success";
         const icon = isSuccess ? acceptIcon : notAcceptIcon;
@@ -332,7 +344,7 @@ export const ResidentsPage = () => {
 
             fetchResidents(); // Cập nhật danh sách
             setModalStatus("success");
-            setStatusMessage(`Đã xóa thành công.`);
+            setStatusMessage(`Đã xóa cư dân ID ${residentToDelete.id} thành công.`);
 
         } catch (err) {
             console.error('Delete Error:', err);
@@ -356,6 +368,25 @@ export const ResidentsPage = () => {
     return (
         <div className="flex-1 p-8 bg-blue-700 min-h-screen text-white"> {/* Nền xanh dương sáng */}
             
+            {/* --- THANH TÌM KIẾM CỤC BỘ (FULL WIDTH) --- */}
+            <div className="flex justify-start items-center mb-6">
+                <div className="relative w-full max-w-full"> {/* <<< FULL WIDTH */}
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        placeholder="Tìm theo ID cư dân..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" // <<< py-2.5 cho chiều cao lớn hơn
+                    />
+                </div>
+            </div>
+            {/* ----------------------------- */}
+
             <h1 className="text-3xl font-bold mb-6">Thông tin cư dân</h1>
 
             {/* Header: Nút Thêm/Xóa */}
@@ -364,32 +395,32 @@ export const ResidentsPage = () => {
                 {!isDeleteMode && (
                     <button
                         onClick={handleAddClick}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center text-sm" // Màu xanh dương, text nhỏ hơn
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center text-sm"
                     >
                         Thêm cư dân
                     </button>
                 )}
                 {/* Nút Xóa / Hoàn tất */}
                 <button
-                    onClick={toggleDeleteMode} // <<< GỌI HÀM TOGGLE
+                    onClick={toggleDeleteMode} // <<< UPDATED
                     className={`${
                         isDeleteMode
                             ? "bg-gray-500 hover:bg-gray-600"
                             : "bg-red-500 hover:bg-red-700"
                     } text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center text-sm`}
                 >
-                    {isDeleteMode ? "Hoàn tất" : "Xóa cư dân"} {/* <<< ĐỔI TEXT */}
+                    {isDeleteMode ? "Hoàn tất" : "Xóa cư dân"} {/* <<< UPDATED */}
                 </button>
             </div>
 
             {/* Danh sách thẻ cư dân */}
             <div className="space-y-4"> {/* Khoảng cách dọc giữa các thẻ */}
-                {residents.length === 0 ? (
+                {filteredResidents.length === 0 ? ( // <<< UPDATED: Dùng filteredResidents
                     <div className="bg-white p-6 rounded-lg text-center text-gray-500"> {/* Nền thẻ trắng */}
-                        Không có cư dân nào để hiển thị.
+                        Không có cư dân nào phù hợp với tìm kiếm.
                     </div>
                 ) : (
-                    residents.map((resident) => (
+                    filteredResidents.map((resident) => ( // <<< UPDATED: Dùng filteredResidents
                         // Thẻ thông tin cư dân (Giao diện Sáng)
                         <div key={resident.id} className="bg-white p-4 rounded-lg shadow-md flex items-center space-x-6 relative text-gray-900"> {/* Nền trắng, chữ đen */}
                             {/* Icon User */}
@@ -430,10 +461,9 @@ export const ResidentsPage = () => {
                                 {/* Cột 5: Thông tin chi tiết */}
                                 <div className="flex flex-col">
                                     <span className="text-gray-500 text-xs mb-1">Thông tin chi tiết</span>
-                                    {/* <<< Ẩn nút Xem thêm khi ở chế độ xóa */}
                                     <button 
-                                        onClick={() => handleViewClick(resident)}
-                                        className={`text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold ${isDeleteMode ? 'opacity-0 pointer-events-none' : ''}`}>
+                                        onClick={() => handleViewClick(resident)} // <<< UPDATED
+                                        className={`text-blue-500 hover:underline text-left text-sm p-0 bg-transparent border-none font-semibold ${isDeleteMode ? 'opacity-0 pointer-events-none' : ''}`}> {/* <<< UPDATED */}
                                         Xem thêm
                                     </button>
                                 </div>
@@ -441,14 +471,14 @@ export const ResidentsPage = () => {
 
                              {/* Nút Chỉnh sửa / Xóa cư dân */}
                             <button
-                                onClick={() => isDeleteMode ? handleDeleteClick(resident) : handleEditClick(resident)} // <<< LOGIC CHUYỂN ĐỔI
+                                onClick={() => isDeleteMode ? handleDeleteClick(resident) : handleEditClick(resident)} // <<< UPDATED: Logic chuyển đổi
                                 className={`ml-auto flex-shrink-0 font-semibold py-1 px-3 rounded-md transition-colors text-sm bg-transparent border-none ${
                                     isDeleteMode
                                         ? 'text-red-600 hover:text-red-800' // Style Xóa
                                         : 'text-blue-500 hover:text-blue-700' // Style Chỉnh sửa
                                 }`}
                             >
-                                {isDeleteMode ? 'Xóa cư dân' : 'Chỉnh sửa'} {/* <<< ĐỔI TEXT */}
+                                {isDeleteMode ? 'Xóa cư dân' : 'Chỉnh sửa'} {/* <<< UPDATED */}
                             </button>
 
                             {/* Trạng thái "Đã xóa" */}
@@ -471,6 +501,7 @@ export const ResidentsPage = () => {
                 isViewing={false}
             />
             
+            {/* --- MODAL XEM CHI TIẾT --- */}
             <ResidentFormModal
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
@@ -478,6 +509,7 @@ export const ResidentsPage = () => {
                 onSave={() => {}}
                 isViewing={true}
             />
+            {/* ----------------------------- */}
 
             {/* Confirmation Modal (Xác nhận trước khi xóa) */}
             <ConfirmationModal
@@ -485,7 +517,7 @@ export const ResidentsPage = () => {
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={confirmDelete}
                 title="Xác nhận Xóa Cư dân"
-                message={`Bạn có chắc chắn muốn xóa cư dân này không?`}
+                message={`Bạn có chắc chắn muốn xóa cư dân ID ${residentToDelete?.id || 'này'} không? (Thao tác này là soft delete)`}
             />
             
             {/* Status Modal (Hiển thị kết quả xóa) */}

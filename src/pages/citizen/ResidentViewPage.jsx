@@ -113,7 +113,7 @@ const ResidentFormModal = ({ isOpen, onClose, residentData, onSave, isViewing = 
                     <InputGroup label="CCCD" name="cccd" value={formData.cccd} onChange={handleChange} readOnly={isViewing} />
 
                     {/* Hàng 4: Ngày sinh / Trạng thái cư trú */}
-                    <InputGroup label="Ngày sinh" name="birth_date" type="date" value={formData.birth_date} onChange={handleChange} readOnly={isViewing} />
+                    <InputGroup label="Ngày sinh" name="birth_date" type="date" value={formData.birth_date} onChange={handleChange} required readOnly={isViewing} />
                     <SelectGroup 
                         label="Trạng thái cư trú" 
                         name="residency_status" 
@@ -215,16 +215,9 @@ export const ResidentViewPage = () => { // <<< ĐỔI TÊN COMPONENT
     // --- State cho Modal Chi tiết/Xem ---
     const [isViewModalOpen, setIsViewModalOpen] = useState(false); 
     const [viewingResident, setViewingResident] = useState(null); 
-
-    // Các state liên quan đến Thêm/Sửa/Xóa KHÔNG được sử dụng:
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-    // const [editingResident, setEditingResident] = useState(null);
-    // const [isDeleteMode, setIsDeleteMode] = useState(false);
-    // const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    // const [residentToDelete, setResidentToDelete] = useState(null);
-    // const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-    // const [modalStatus, setModalStatus] = useState(null);
-    // const [statusMessage, setStatusMessage] = useState("");
+    
+    // --- State cho Thanh Tìm kiếm (Chỉ lọc theo ID) ---
+    const [searchTerm, setSearchTerm] = useState(""); // <<< NEW
 
     // --- READ (Đọc danh sách cư dân) ---
     const fetchResidents = async () => {
@@ -249,6 +242,16 @@ export const ResidentViewPage = () => { // <<< ĐỔI TÊN COMPONENT
     useEffect(() => {
         fetchResidents();
     }, []);
+    
+    // --- LOGIC LỌC DỮ LIỆU ---
+    const filteredResidents = residents.filter(resident => {
+        // Nếu không có searchTerm, trả về tất cả
+        if (!searchTerm.trim()) {
+            return true;
+        }
+        // Lọc theo ID (Chuyển ID thành chuỗi để so sánh)
+        return String(resident.id).includes(searchTerm.trim());
+    });
 
     // --- VIEW (Xem chi tiết) ---
     const handleViewClick = (resident) => { 
@@ -268,6 +271,25 @@ export const ResidentViewPage = () => { // <<< ĐỔI TÊN COMPONENT
     return (
         <div className="flex-1 p-8 bg-blue-700 min-h-screen text-white"> {/* Nền xanh dương sáng */}
             
+            {/* --- THANH TÌM KIẾM CỤC BỘ (ĐÃ MỞ RỘNG) --- */}
+            <div className="flex justify-start items-center mb-6">
+                <div className="relative w-full max-w-full"> {/* <<< SỬA: w-full max-w-full */}
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        placeholder="Tìm theo ID cư dân..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:border-blue-500" // <<< SỬA py-2.5
+                    />
+                </div>
+            </div>
+            {/* ----------------------------- */}
+
             <h1 className="text-3xl font-bold mb-6">Thông tin cư dân</h1>
 
             {/* Header: KHÔNG CÓ NÚT THÊM/XÓA CƯ DÂN */}
@@ -277,12 +299,12 @@ export const ResidentViewPage = () => { // <<< ĐỔI TÊN COMPONENT
 
             {/* Danh sách thẻ cư dân */}
             <div className="space-y-4"> {/* Khoảng cách dọc giữa các thẻ */}
-                {residents.length === 0 ? (
+                {filteredResidents.length === 0 ? (
                     <div className="bg-white p-6 rounded-lg text-center text-gray-500"> {/* Nền thẻ trắng */}
                         Không có cư dân nào để hiển thị.
                     </div>
                 ) : (
-                    residents.map((resident) => (
+                    filteredResidents.map((resident) => (
                         // Thẻ thông tin cư dân (Giao diện Sáng)
                         <div key={resident.id} className="bg-white p-4 rounded-lg shadow-md flex items-center space-x-6 relative text-gray-900"> {/* Nền trắng, chữ đen */}
                             {/* Icon User */}
