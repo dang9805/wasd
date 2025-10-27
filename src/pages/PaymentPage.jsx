@@ -1,64 +1,24 @@
-import React from "react";
-// --- 1. Import useNavigate ---
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// --- Dữ liệu mẫu ---
-const paymentData = [
-  {
-    id: "156782",
-    feeType: "Phí sửa chữa",
-    paymentDate: "20/12/2005",
-    paymentMethod: "Online",
-    status: "Đã thanh toán",
-  },
-  {
-    id: "156970",
-    feeType: "Tiền điện tháng",
-    paymentDate: "30/10/2005",
-    paymentMethod: "Offline",
-    status: "Đã thanh toán",
-  },
-  {
-    id: "156772",
-    feeType: "Tiền nước tháng",
-    paymentDate: null,
-    paymentMethod: null,
-    status: "Chưa thanh toán",
-  },
-  {
-    id: "156782-2", // Đảm bảo ID là duy nhất nếu có thể
-    feeType: "Phí dịch vụ",
-    paymentDate: null,
-    paymentMethod: null,
-    status: "Chưa thanh toán",
-  },
-  {
-    id: "156782-2", // Đảm bảo ID là duy nhất nếu có thể
-    feeType: "Phí dịch vụ",
-    paymentDate: null,
-    paymentMethod: null,
-    status: "Chưa thanh toán",
-  },
-  {
-    id: "156782-2", // Đảm bảo ID là duy nhất nếu có thể
-    feeType: "Phí dịch vụ",
-    paymentDate: null,
-    paymentMethod: null,
-    status: "Chưa thanh toán",
-  },
-];
+// --- Xóa Dữ liệu mẫu ---
+// const paymentData = [...]; 
 
 // --- Component hiển thị một mục thanh toán ---
 const PaymentItem = ({ item }) => {
-  // --- 2. Khởi tạo hook navigate ---
   const navigate = useNavigate();
-  const isPaid = item.status === "Đã thanh toán";
+  // BE trả về status_text là "Đã thanh toán" hoặc "Chưa thanh toán"
+  const isPaid = item.status_text === "Đã thanh toán";
+  
+  // Format ngày: BE trả về payment_date (null nếu chưa thanh toán)
+  const formattedPaymentDate = item.payment_date 
+    ? new Date(item.payment_date).toLocaleDateString('vi-VN') 
+    : "---";
 
-  // --- 3. Cập nhật hàm xử lý ---
   const handlePayInvoice = (invoiceId) => {
     console.log(`Navigating to QR payment for ID: ${invoiceId}`);
     // Điều hướng đến trang QR với ID hóa đơn
-    navigate(`/dashboard/payment/${invoiceId}/qr`);
+    navigate(`/dashboard/payment/${invoiceId}/qr`); 
   };
 
   return (
@@ -75,17 +35,19 @@ const PaymentItem = ({ item }) => {
         {/* Cột 2: Loại phí */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Loại phí</p>
-          <p className="font-medium text-gray-700">{item.feeType}</p>
+          {/* BE field: feetype */}
+          <p className="font-medium text-gray-700">{item.feetype}</p>
         </div>
         {/* Cột 3: Ngày thanh toán */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Ngày thanh toán</p>
-          <p className="text-gray-600">{item.paymentDate || "---"}</p>
+          <p className="text-gray-600">{formattedPaymentDate}</p>
         </div>
         {/* Cột 4: Hình thức */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Hình thức thanh toán</p>
-          <p className="text-gray-600">{item.paymentMethod || "---"}</p>
+          {/* BE field: payment_form */}
+          <p className="text-gray-600">{item.payment_form || "---"}</p>
         </div>
         {/* Cột 5: Trạng thái & Nút */}
         <div className="text-right">
@@ -95,11 +57,11 @@ const PaymentItem = ({ item }) => {
               isPaid ? "text-green-600" : "text-red-600"
             }`}
           >
-            {item.status}
+            {/* BE field: status_text */}
+            {item.status_text}
           </p>
           {!isPaid && (
             <button
-              // --- 4. Gọi hàm xử lý với ID ---
               onClick={() => handlePayInvoice(item.id)}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
             >
@@ -114,15 +76,74 @@ const PaymentItem = ({ item }) => {
 
 // --- Component Trang Thanh toán chính ---
 export const PaymentPage = () => {
-  return (
-    <div className="text-white">
-      <h1 className="text-3xl font-bold mb-6 text-white">Thanh toán</h1>
-      <div className="space-y-4">
-        {paymentData.map((item) => (
-          // --- 5. Sử dụng ID thật làm key ---
-          <PaymentItem key={item.id} item={item} />
-        ))}
-      </div>
-    </div>
-  );
+    // Thêm state để quản lý dữ liệu, loading và lỗi
+    const [payments, setPayments] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // Hàm Fetch dữ liệu từ BE
+    const fetchPayments = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        // Sử dụng endpoint /api/payments
+        try {
+            // Sử dụng /api để proxy đến http://localhost:3000/payments
+            const response = await fetch('/api/payments'); 
+            if (!response.ok) {
+                // Cố gắng đọc lỗi chi tiết từ body nếu có
+                const errorData = await response.json().catch(() => ({ error: 'Lỗi không xác định khi tải dữ liệu.' }));
+                throw new Error(errorData.error || 'Không thể tải dữ liệu thanh toán.');
+            }
+            const data = await response.json();
+            // Data đã được BE tự động mapping status_text và is_paid
+            setPayments(data);
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    // Gọi API khi component mount
+    useEffect(() => {
+        fetchPayments();
+    }, []);
+
+    // Xử lý Loading State
+    if (isLoading) {
+        return <div className="text-white text-lg p-4">Đang tải danh sách thanh toán...</div>;
+    }
+
+    // Xử lý Error State
+    if (error) {
+        return <div className="text-red-400 text-lg p-4">Lỗi tải dữ liệu: {error}</div>;
+    }
+    
+    // Hiển thị nội dung
+    const renderContent = () => {
+        if (payments.length === 0) {
+            return (
+                <div className="bg-white p-6 rounded-lg text-center text-gray-500 shadow-md">
+                    Không có hóa đơn thanh toán nào để hiển thị.
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                {payments.map((item) => (
+                    <PaymentItem key={item.id} item={item} />
+                ))}
+            </div>
+        );
+    };
+
+    return (
+        <div className="text-white">
+            <h1 className="text-3xl font-bold mb-6 text-white">Thanh toán</h1>
+            {renderContent()}
+        </div>
+    );
 };

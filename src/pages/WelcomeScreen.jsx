@@ -67,7 +67,7 @@ export const AdminBox = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate("/login");
+    navigate("/dashboard");
   };
 
   return (
