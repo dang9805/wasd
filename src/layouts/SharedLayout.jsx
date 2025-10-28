@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom"; 
 
 // --- Imports ---
 import logo from "../images/company-s-logo.png";
@@ -20,7 +20,7 @@ const navItems = [
   { name: "Thông báo", to: "/dashboard/notifications", icon: iconThongBao },
 ];
 
-// --- Search Icon ---
+// --- Search Icon (Giữ nguyên cho việc tái sử dụng nếu cần) ---
 const SearchIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -40,6 +40,14 @@ const SearchIcon = () => (
 
 export const SharedLayout = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate(); 
+
+  // Hàm xử lý Logout
+  const handleLogout = () => {
+    // Xóa session/token (nếu có)
+    // ...
+    navigate("/welcome"); // CHUYỂN HƯỚNG VỀ TRANG WELCOME
+  };
 
   // === SỬA TẠI ĐÂY: Thanh active bên TRÁI ===
   const getNavLinkClass = ({ isActive }) => {
@@ -58,11 +66,11 @@ export const SharedLayout = () => {
   // === KẾT THÚC SỬA ===
 
   return (
-    <div className="flex h-screen bg-blue-700"> {/* <<< Đổi nền chính thành màu xanh */}
+    <div className="flex h-screen bg-blue-700"> {/* Đổi nền chính thành màu xanh */}
 
       {/* === SIDEBAR === */}
       {/* Thêm rounded-tr-2xl và rounded-br-2xl */}
-      <aside className="w-72 flex flex-col bg-white rounded-tr-2xl rounded-br-2xl flex-shrink-0 relative z-10 shadow-lg"> {/* <<< THÊM/SỬA Ở ĐÂY */}
+      <aside className="w-72 flex flex-col bg-white rounded-tr-2xl rounded-br-2xl flex-shrink-0 relative z-10 shadow-lg"> 
 
         {/* Logo */}
         <div className="h-20 flex items-center justify-center px-6"> {/* Căn giữa logo */}
@@ -93,35 +101,22 @@ export const SharedLayout = () => {
               className="h-full w-auto object-contain p-2" /* Điều chỉnh object-fit và padding */
             />
           </div>
-          <button className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 font-medium">
+          <button 
+            onClick={handleLogout} 
+            className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 font-medium"
+          >
             <img src={iconLogout} alt="" className="w-6 h-6" />
             <span>Logout</span>
           </button>
         </div>
       </aside>
 
-      {/* === KHUNG NỘI DUNG CHÍNH === */}
-      {/* Bỏ bg-blue-700 ở đây vì đã đặt ở div cha ngoài cùng */}
+      {/* === KHUNG NỘI DUNG CHÍNH (ĐÃ XÓA THANH SEARCH) === */}
       <main className="flex-1 overflow-y-auto flex flex-col">
-        {/* Thanh tìm kiếm */}
-        <div className="p-6 sticky top-0 bg-blue-700 z-10"> {/* Giữ nền xanh cho thanh search */}
-          <div className="relative">
-            <input
-              type="search"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              // Style lại thanh search cho giống ảnh hơn
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-900 placeholder-gray-400"
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon /> {/* Icon search đã có */}
-            </div>
-          </div>
-        </div>
-
-        {/* Nội dung trang con */}
-        <div className="p-8 pt-4 flex-1"> {/* Giảm padding top */}
+        
+        {/* Thanh tìm kiếm đã bị xóa khỏi đây. Chỉ còn lại p-8 pt-4 flex-1 */}
+        
+        <div className="p-8 pt-4 flex-1"> {/* Giữ nguyên padding cho nội dung trang con */}
           <Outlet />
         </div>
       </main>

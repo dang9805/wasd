@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom"; 
 
-// --- 1. Import StatusModal từ thư mục layouts ---
-import { StatusModal } from "../layouts/StatusModal"; // Sửa đường dẫn
+// --- Component hiển thị modal trạng thái ---
+import { StatusModal } from "../layouts/StatusModal"; 
 
 // --- Import ảnh ---
 import qrImage from "../images/qr.png";
@@ -11,16 +11,116 @@ import notAcceptIcon from "../images/not_accept_icon.png";
 
 export const QRCodePayment = () => {
   const navigate = useNavigate();
+  const { invoiceId } = useParams(); 
+  
   const [showModal, setShowModal] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'success' or 'failure'
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // State chứa thông tin thanh toán
+  const [paymentDetails, setPaymentDetails] = useState({
+      id: invoiceId, 
+      transactionRef: null, 
+      amount: "Đang tải...",
+      feetype: "Đang tải...",
+      accountName: "CÔNG TY QUẢN LÝ BLUE MOON", // Dữ liệu mock
+      accountNumber: "999988887777" // Dữ liệu mock
+  });
 
-  const paymentDetails = { /* ... (dữ liệu giữ nguyên) ... */ };
+  // --- HÀM XÁC ĐỊNH URL CHUYỂN HƯỚNG ---
+  const getSuccessRedirectUrl = () => {
+    // window.location.pathname chứa đường dẫn hiện tại (ví dụ: /dashboard/payment/123/qr)
+    // Nếu nó chứa '/resident_dashboard', thì chuyển hướng về trang của dân cư.
+    if (window.location.pathname.includes('/resident_dashboard')) {
+        return '/resident_dashboard/payment';
+    }
+    // Ngược lại, chuyển hướng về trang của BQT (mặc định)
+    return '/dashboard/payment';
+  };
+  // ------------------------------------
+
+  // --- Fetch payment details và transactionRef ---
+  useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      try {
+        const response = await fetch(`/api/payments/${invoiceId}`); // API GET one payment by id
+        if (!response.ok) {
+          throw new Error('Không tìm thấy hóa đơn.');
+        }
+        const data = await response.json();
+        
+        // Cập nhật state với dữ liệu thực tế
+        setPaymentDetails({
+            id: data.id,
+            transactionRef: data.transaction_ref, // <<< Lấy transaction_ref
+            amount: `${data.amount.toLocaleString('vi-VN')} VND`, // Định dạng số tiền
+            feetype: data.feetype || 'Phí không xác định',
+            accountName: "CÔNG TY QUẢN LÝ BLUE MOON", 
+            accountNumber: "999988887777"
+        });
+        setError(null);
+      } catch (err) {
+        console.error('Fetch Error:', err);
+        setError(err.message);
+        setPaymentDetails(prev => ({ ...prev, amount: "Lỗi tải dữ liệu", feetype: "Lỗi tải dữ liệu" }));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (invoiceId) {
+        fetchPaymentDetails();
+    }
+  }, [invoiceId]);
+
   const handleGoBack = () => navigate(-1);
 
-  const handleQRCodeClick = () => {
+  // --- UPDATED: Call API for mock payment callback ---
+  const handleQRCodeClick = async () => {
+    if (loading || error || showModal) return; 
+    
+    // 1. Randomly determine success or failure (50/50)
     const isSuccess = Math.random() > 0.5;
+    const status = isSuccess ? "success" : "failed";
+    
     setPaymentStatus(isSuccess ? "success" : "failure");
-    setShowModal(true);
+    setShowModal(true); // Show modal immediately
+
+    // 2. Call the payment callback API 
+    if (paymentDetails.transactionRef) {
+        try {
+            const response = await fetch('/api/payment/callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transaction_ref: paymentDetails.transactionRef,
+                    status: status,
+                    // Mock additional required fields for success
+                    payer_account: isSuccess ? '1234567890' : undefined,
+                    payer_name: isSuccess ? 'Người Thanh Toán Mẫu' : undefined,
+                }),
+            });
+            
+            if (!response.ok) {
+                // Xử lý lỗi API, nhưng vẫn giữ status ngẫu nhiên đã chọn
+                const result = await response.json().catch(() => ({}));
+                console.error('Callback API Error:', result.error || response.statusText);
+            }
+            
+            // 3. Navigate back to payment list on success after short delay
+            if (isSuccess) {
+                 setTimeout(() => {
+                    // CHUYỂN HƯỚNG TỚI URL ĐÚNG VAI TRÒ
+                    const redirectUrl = getSuccessRedirectUrl();
+                    navigate(redirectUrl); 
+                 }, 1500); 
+            }
+            
+        } catch (err) {
+            console.error('Network Error during callback:', err);
+        }
+    }
   };
 
   const handleCloseModal = () => {
@@ -28,15 +128,16 @@ export const QRCodePayment = () => {
     setPaymentStatus(null);
   };
 
-  // --- 2. Chuẩn bị nội dung cho modal ---
+  // --- Chuẩn bị nội dung cho modal ---
   const renderModalContent = () => {
     if (!paymentStatus) return null;
 
     const isSuccess = paymentStatus === "success";
     const icon = isSuccess ? acceptIcon : notAcceptIcon;
+    // Thêm thông báo chuyển hướng khi thành công
     const message = isSuccess
-      ? "Đã thanh toán thành công!"
-      : "Thanh toán không thành công!";
+      ? "Đã thanh toán thành công! Đang chuyển hướng..."
+      : "Thanh toán không thành công! Vui lòng thử lại.";
 
     return (
       <div className="flex flex-col items-center">
@@ -47,10 +148,17 @@ export const QRCodePayment = () => {
       </div>
     );
   };
+  
+  if (loading) {
+      return <div className="text-white text-lg p-4">Đang tải thông tin thanh toán...</div>;
+  }
+  
+  if (error) {
+       return <div className="text-red-400 text-lg p-4">Lỗi: {error}</div>;
+  }
 
   return (
     <div className="flex flex-col items-center text-gray-800">
-      {/* ... (Tiêu đề, khối QR, khối thông tin giữ nguyên) ... */}
        {/* Tiêu đề */}
       <div className="bg-white rounded-lg shadow-md px-8 py-3 mb-8">
         <h1 className="text-2xl font-bold text-center">MÃ QR thanh toán</h1>
@@ -71,10 +179,9 @@ export const QRCodePayment = () => {
       {/* Khối Thông tin thanh toán */}
       <div className="bg-white rounded-lg shadow-md p-6 max-w-lg w-full">
         <div className="space-y-4 mb-6">
-          {/* ... (Chi tiết giao dịch) ... */}
            <div className="flex justify-between items-center border-b pb-2">
             <span className="text-sm text-gray-500">Tên giao dịch:</span>
-            <span className="font-medium">{paymentDetails.transactionName}</span>
+            <span className="font-medium">{paymentDetails.feetype}</span>
           </div>
           <div className="flex justify-between items-center border-b pb-2">
             <span className="text-sm text-gray-500">Số tiền:</span>
@@ -90,18 +197,18 @@ export const QRCodePayment = () => {
           </div>
         </div>
         {/* Nút Quay lại và Kiểm tra */}
-        <div className="flex justify-between mt-6"> {/* Thêm mt-6 để có khoảng cách với phần trên */}
+        <div className="flex justify-between mt-6"> 
           <button
             onClick={handleGoBack}
-            // Style nút quay lại (ví dụ: nền xám)
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-md transition-colors duration-200"
+            disabled={showModal}
           >
             Quay lại
           </button>
           <button
             onClick={handleQRCodeClick}
-            // Style nút kiểm tra (giữ nguyên màu xanh)
             className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors duration-200"
+            disabled={showModal}
           >
             Kiểm tra
           </button>
@@ -109,13 +216,12 @@ export const QRCodePayment = () => {
       </div>
 
 
-      {/* --- 3. Sử dụng StatusModal và truyền content vào children --- */}
+      {/* --- Sử dụng StatusModal --- */}
       <StatusModal
         isOpen={showModal}
         onClose={handleCloseModal}
-        // title không cần thiết ở đây, nút X tự căn chỉnh
       >
-        {renderModalContent()} {/* Truyền JSX vào giữa thẻ */}
+        {renderModalContent()} 
       </StatusModal>
     </div>
   );
