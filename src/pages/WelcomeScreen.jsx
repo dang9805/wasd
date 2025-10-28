@@ -8,7 +8,7 @@ export const TitleLabel = () => {
         className="text-white text-[4vw] text-center tracking-[0] leading-5 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold
       px-[2vw] py-[1vh] mt-[-10vh] mb-[5vh]"
       >
-        PHẦN MỀN QUẢN LÝ CHUNG CƯ
+        PHẦN MỀM QUẢN LÝ CHUNG CƯ
       </p>
       <p
         className="text-white text-[4vw] text-center tracking-[0] leading-5 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold
